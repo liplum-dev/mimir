@@ -10,6 +10,11 @@ class YwbCredentialsException implements Exception {
   const YwbCredentialsException({
     required this.message,
   });
+
+  @override
+  String toString() {
+    return message;
+  }
 }
 
 /// 认证失败
@@ -21,6 +26,11 @@ class OaCredentialsException implements Exception {
     required this.type,
     required this.message,
   });
+
+  @override
+  String toString() {
+    return "$type $message";
+  }
 }
 
 class LoginCaptchaCancelledException implements Exception {
@@ -32,6 +42,11 @@ class LoginRequiredException implements Exception {
   final String url;
 
   const LoginRequiredException({required this.url});
+
+  @override
+  String toString() {
+    return url;
+  }
 }
 
 /// 未知的验证错误
