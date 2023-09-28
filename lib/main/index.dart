@@ -1,9 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mimir/design/adaptive/multiplatform.dart';
 import 'package:mimir/timetable/i18n.dart' as $timetable;
 import 'package:mimir/school/i18n.dart' as $school;
 import 'package:mimir/life/i18n.dart' as $life;
 import 'package:mimir/me/i18n.dart' as $me;
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:rettulf/rettulf.dart';
 
 class MainStagePage extends StatefulWidget {
@@ -24,6 +27,10 @@ extension _NavigationDestX on _NavigationDest {
 
   NavigationRailDestination toRailDest() {
     return NavigationRailDestination(icon: icon, selectedIcon: activeIcon, label: label.text());
+  }
+
+  BottomNavigationBarItem toCupertinoBarItem() {
+    return BottomNavigationBarItem(icon: icon, activeIcon: activeIcon, label: label);
   }
 }
 
@@ -76,17 +83,34 @@ class _MainStagePageState extends State<MainStagePage> {
 
   @override
   Widget build(BuildContext context) {
+    return isCupertino ? buildCupertino() : buildMaterial();
+  }
+
+  Widget buildMaterial() {
     if (context.isPortrait) {
       return Scaffold(
         resizeToAvoidBottomInset: false,
         body: widget.navigationShell,
-        bottomNavigationBar: buildButtonNavigationBar(),
+        bottomNavigationBar: BottomNavigationBar(
+          useLegacyColorScheme: false,
+          showUnselectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+          landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
+          currentIndex: getSelectedIndex(),
+          onTap: onItemTapped,
+          items: items.map((e) => e.item.toBarItem()).toList(),
+        ),
       );
     } else {
       return Scaffold(
         resizeToAvoidBottomInset: false,
         body: [
-          buildNavigationRail(),
+          NavigationRail(
+            labelType: NavigationRailLabelType.all,
+            selectedIndex: getSelectedIndex(),
+            onDestinationSelected: onItemTapped,
+            destinations: items.map((e) => e.item.toRailDest()).toList(),
+          ),
           const VerticalDivider(),
           widget.navigationShell.expanded(),
         ].row(),
@@ -94,24 +118,15 @@ class _MainStagePageState extends State<MainStagePage> {
     }
   }
 
-  Widget buildButtonNavigationBar() {
-    return BottomNavigationBar(
-      useLegacyColorScheme: false,
-      showUnselectedLabels: false,
-      type: BottomNavigationBarType.fixed,
-      landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
-      currentIndex: getSelectedIndex(),
-      onTap: onItemTapped,
-      items: items.map((e) => e.item.toBarItem()).toList(),
-    );
-  }
-
-  Widget buildNavigationRail() {
-    return NavigationRail(
-      labelType: NavigationRailLabelType.all,
-      selectedIndex: getSelectedIndex(),
-      onDestinationSelected: onItemTapped,
-      destinations: items.map((e) => e.item.toRailDest()).toList(),
+  Widget buildCupertino() {
+    return CupertinoTabScaffold(
+      resizeToAvoidBottomInset: false,
+      tabBar: CupertinoTabBar(
+        items: items.map((e) => e.item.toCupertinoBarItem()).toList(),
+        currentIndex: getSelectedIndex(),
+        onTap: onItemTapped,
+      ),
+      tabBuilder: (_, i) => widget.navigationShell,
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:mimir/r.dart';
 import 'package:mimir/route.dart';
 import 'package:mimir/session/widgets/scope.dart';
 import 'package:mimir/settings/settings.dart';
+import 'package:rettulf/rettulf.dart';
 
 class MimirApp extends StatefulWidget {
   const MimirApp({super.key});
@@ -42,32 +43,30 @@ class _MimirAppState extends State<MimirApp> {
     return isCupertino ? buildCupertino() : buildMaterial();
   }
 
-  Widget buildMaterial() {
+  ThemeData bakeTheme(ThemeData origin) {
     final themeColor = Settings.theme.themeColor;
+    return origin.copyWith(
+      platform: R.debugCupertino ? TargetPlatform.iOS : null,
+      colorScheme: themeColor == null
+          ? null
+          : ColorScheme.fromSeed(
+              seedColor: themeColor,
+              brightness: origin.brightness,
+            ),
+      visualDensity: VisualDensity.comfortable,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: SharedAxisPageTransitionsBuilder(transitionType: SharedAxisTransitionType.horizontal),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: SharedAxisPageTransitionsBuilder(transitionType: SharedAxisTransitionType.vertical),
+          TargetPlatform.windows: SharedAxisPageTransitionsBuilder(transitionType: SharedAxisTransitionType.vertical),
+        },
+      ),
+    );
+  }
 
-    ThemeData bakeTheme(ThemeData origin) {
-      return origin.copyWith(
-        platform: R.debugCupertino ? TargetPlatform.iOS : null,
-        colorScheme: themeColor == null
-            ? null
-            : ColorScheme.fromSeed(
-                seedColor: themeColor,
-                brightness: origin.brightness,
-              ),
-        visualDensity: VisualDensity.comfortable,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android:
-                SharedAxisPageTransitionsBuilder(transitionType: SharedAxisTransitionType.horizontal),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-            TargetPlatform.linux: SharedAxisPageTransitionsBuilder(transitionType: SharedAxisTransitionType.vertical),
-            TargetPlatform.windows: SharedAxisPageTransitionsBuilder(transitionType: SharedAxisTransitionType.vertical),
-          },
-        ),
-      );
-    }
-
+  Widget buildMaterial() {
     return MaterialApp.router(
       title: R.appName,
       routerConfig: router,
@@ -105,6 +104,9 @@ class _MimirAppState extends State<MimirApp> {
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
+      theme: CupertinoThemeData(
+        brightness: View.of(context).platformDispatcher.platformBrightness,
+      ),
       builder: (ctx, child) => OaAuthManager(
         child: OaOnlineManager(
           child: child ?? const SizedBox(),
