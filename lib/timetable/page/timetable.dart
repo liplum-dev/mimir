@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptive_ui/flutter_adaptive_ui.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sit/design/adaptive/dialog.dart';
@@ -18,6 +19,8 @@ import '../init.dart';
 import '../entity/pos.dart';
 import '../widgets/focus.dart';
 import '../widgets/timetable/board.dart';
+import '../widgets/timetable/daily.dart';
+import '../widgets/timetable/weekly.dart';
 
 class TimetableBoardPage extends StatefulWidget {
   final SitTimetableEntity timetable;
@@ -52,8 +55,7 @@ class _TimetableBoardPageState extends State<TimetableBoardPage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget buildDefault(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -87,6 +89,70 @@ class _TimetableBoardPageState extends State<TimetableBoardPage> {
         timetable: timetable,
         $displayMode: $displayMode,
         $currentPos: $currentPos,
+      ),
+    );
+  }
+
+  Widget buildDesktop(BuildContext context) {
+    final todayPos = timetable.type.locate(DateTime.now());
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        title: $currentPos >> (ctx, pos) => i18n.weekOrderedName(number: pos.weekIndex + 1).text(),
+        actions: [
+          buildMyTimetablesButton(),
+          buildMoreActionsButton(),
+        ],
+      ),
+      floatingActionButton: InkWell(
+        onLongPress: () async {
+          if ($displayMode.value == DisplayMode.weekly) {
+            await selectWeeklyTimetablePageToJump();
+          } else {
+            await selectDailyTimetablePageToJump();
+          }
+        },
+        child: AutoHideFAB(
+          controller: scrollController,
+          child: const Icon(Icons.undo_rounded),
+          onPressed: () async {
+            final today = timetable.type.locate(DateTime.now());
+            if ($currentPos.value != today) {
+              eventBus.fire(JumpToPosEvent(today));
+            }
+          },
+        ),
+      ),
+      body: [
+        WeeklyTimetable(
+          $currentPos: $currentPos,
+          timetable: timetable,
+        ).expanded(),
+        // $currentPos >>
+        //         (ctx, value) => TimetableOneDayPage(
+        //       timetable: timetable,
+        //       todayPos: todayPos,
+        //       weekIndex: value.weekIndex,
+        //       weekday: value.weekday,
+        //     ).expanded(),
+        DailyTimetable(
+          $currentPos: $currentPos,
+          timetable: timetable,
+        ).expanded(),
+      ].row(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveBuilder(
+      defaultBuilder: (ctx, screen) {
+        return buildDefault(ctx);
+      },
+      layoutDelegate: AdaptiveLayoutDelegateWithMinimallScreenType(
+        desktop: (ctx, screen) {
+          return buildDesktop(ctx);
+        },
       ),
     );
   }

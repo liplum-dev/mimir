@@ -7,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:fit_system_screenshot/fit_system_screenshot.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptive_ui/flutter_adaptive_ui.dart';
 import 'package:sit/credentials/widgets/oa_scope.dart';
 import 'package:sit/files.dart';
 import 'package:sit/qrcode/handle.dart';
@@ -95,35 +96,37 @@ class _MimirAppState extends State<MimirApp> {
       );
     }
 
-    return MaterialApp.router(
-      title: R.appName,
-      onGenerateTitle: (ctx) => "appName".tr(),
-      routerConfig: router,
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      themeMode: Settings.theme.themeMode,
-      theme: bakeTheme(ThemeData.light(
-        useMaterial3: true,
-      )),
-      darkTheme: bakeTheme(ThemeData.dark(
-        useMaterial3: true,
-      )),
-      builder: (ctx, child) => OaAuthManager(
-        child: OaOnlineManager(
-          child: _PostServiceRunner(
-            child: child ?? const SizedBox(),
+    return Breakpoint(
+      child: MaterialApp.router(
+        title: R.appName,
+        onGenerateTitle: (ctx) => "appName".tr(),
+        routerConfig: router,
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
+        themeMode: Settings.theme.themeMode,
+        theme: bakeTheme(ThemeData.light(
+          useMaterial3: true,
+        )),
+        darkTheme: bakeTheme(ThemeData.dark(
+          useMaterial3: true,
+        )),
+        builder: (ctx, child) => OaAuthManager(
+          child: OaOnlineManager(
+            child: _PostServiceRunner(
+              child: child ?? const SizedBox(),
+            ),
           ),
         ),
-      ),
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        dragDevices: {
-          PointerDeviceKind.mouse,
-          PointerDeviceKind.touch,
-          PointerDeviceKind.stylus,
-          PointerDeviceKind.trackpad,
-          PointerDeviceKind.unknown
-        },
+        scrollBehavior: const MaterialScrollBehavior().copyWith(
+          dragDevices: {
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.touch,
+            PointerDeviceKind.stylus,
+            PointerDeviceKind.trackpad,
+            PointerDeviceKind.unknown
+          },
+        ),
       ),
     );
   }
