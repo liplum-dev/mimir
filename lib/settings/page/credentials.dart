@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:sit/credentials/entity/credential.dart';
 import 'package:sit/credentials/init.dart';
 import 'package:sit/credentials/widgets/oa_scope.dart';
@@ -24,14 +25,23 @@ class _CredentialsPageState extends State<CredentialsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PlatformScaffold(
       body: CustomScrollView(
         physics: const RangeMaintainingScrollPhysics(),
         slivers: <Widget>[
-          SliverAppBar.large(
-            pinned: true,
-            snap: false,
-            floating: false,
+          PlatformSliverAppBar(
+            material: (ctx, platform) {
+              return MaterialSliverAppBarData(
+                pinned: true,
+                snap: false,
+                floating: false,
+              );
+            },
+            cupertino: (ctx,p){
+              return CupertinoSliverAppBarData(
+                  previousPageTitle: i18n.title,
+              );
+            },
             title: i18n.oaCredentials.oaAccount.text(),
           ),
           buildBody(),
@@ -60,7 +70,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
   }
 
   Widget buildAccount(Credentials credential) {
-    return ListTile(
+    return PlatformListTile(
       title: i18n.oaCredentials.oaAccount.text(),
       subtitle: credential.account.text(),
       leading: const Icon(Icons.person_rounded),
@@ -76,7 +86,7 @@ class _CredentialsPageState extends State<CredentialsPage> {
   Widget buildPassword(Credentials credential) {
     return AnimatedSize(
       duration: const Duration(milliseconds: 100),
-      child: ListTile(
+      child: PlatformListTile(
         title: i18n.oaCredentials.savedOaPwd.text(),
         subtitle: Text(!showPassword ? i18n.oaCredentials.savedOaPwdDesc : credential.password),
         leading: const Icon(Icons.password_rounded),
@@ -132,8 +142,12 @@ class _TestLoginTileState extends State<TestLoginTile> {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      enabled: loggingState != _TestLoginState.loggingIn,
+    return PlatformListTile(
+      material: (ctx,p){
+        return MaterialListTileData(
+          enabled: loggingState != _TestLoginState.loggingIn,
+        );
+      },
       title: i18n.oaCredentials.testLoginOa.text(),
       subtitle: i18n.oaCredentials.testLoginOaDesc.text(),
       leading: const Icon(Icons.login),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:sit/credentials/entity/login_status.dart';
 import 'package:sit/credentials/widgets/oa_scope.dart';
 import 'package:sit/life/electricity/index.dart';
@@ -51,17 +52,20 @@ class _LifePageState extends State<LifePage> {
   @override
   Widget build(BuildContext context) {
     final campus = Settings.campus;
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
+    return PlatformScaffold(
       body: NestedScrollView(
         floatHeaderSlivers: true,
         headerSliverBuilder: (context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverOverlapAbsorber(
               handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-              sliver: SliverAppBar(
+              sliver: PlatformSliverAppBar(
                 title: i18n.navigation.text(),
-                forceElevated: innerBoxIsScrolled,
+                material: (ctx, platform){
+                  return MaterialSliverAppBarData(
+                    forceElevated: innerBoxIsScrolled,
+                  );
+                },
               ),
             ),
           ];
@@ -89,6 +93,11 @@ class _LifePageState extends State<LifePage> {
           ),
         ),
       ),
+      material: (ctx, platform) {
+        return MaterialScaffoldData(
+          resizeToAvoidBottomInset: false,
+        );
+      },
     );
   }
 }

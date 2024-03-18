@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sit/credentials/entity/login_status.dart';
 import 'package:sit/credentials/widgets/oa_scope.dart';
@@ -53,14 +55,18 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PlatformScaffold(
       body: CustomScrollView(
         physics: const RangeMaintainingScrollPhysics(),
         slivers: <Widget>[
-          SliverAppBar.large(
-            pinned: true,
-            snap: false,
-            floating: false,
+          PlatformSliverAppBar(
+            material: (ctx, platform) {
+              return MaterialSliverAppBarData(
+                pinned: true,
+                snap: false,
+                floating: false,
+              );
+            },
             title: i18n.title.text(),
           ),
           SliverList.list(
@@ -87,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ));
     } else {
       const oaLogin = OaLoginI18n();
-      all.add(ListTile(
+      all.add(PlatformListTile(
         title: oaLogin.loginOa.text(),
         subtitle: oaLogin.neverLoggedInTip.text(),
         leading: const Icon(Icons.person_rounded),
@@ -159,24 +165,24 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget buildThemeMode() {
     return Settings.theme.listenThemeMode() >>
-        (ctx, _) => ListTile(
+        (ctx, _) => PlatformListTile(
               leading: switch (Settings.theme.themeMode) {
                 ThemeMode.dark => const Icon(Icons.dark_mode),
                 ThemeMode.light => const Icon(Icons.light_mode),
                 ThemeMode.system => const Icon(Icons.brightness_auto),
               },
               title: i18n.themeModeTitle.text(),
-              subtitle: ThemeMode.values
-                  .map((mode) => ChoiceChip(
-                        label: mode.l10n().text(),
-                        selected: Settings.theme.themeMode == mode,
-                        onSelected: (value) async {
-                          Settings.theme.themeMode = mode;
-                          await HapticFeedback.mediumImpact();
-                        },
-                      ))
-                  .toList()
-                  .wrap(spacing: 4),
+              // subtitle: ThemeMode.values
+              //     .map((mode) => ChoiceChip(
+              //           label: mode.l10n().text(),
+              //           selected: Settings.theme.themeMode == mode,
+              //           onSelected: (value) async {
+              //             Settings.theme.themeMode = mode;
+              //             await HapticFeedback.mediumImpact();
+              //           },
+              //         ))
+              //     .toList()
+              //     .wrap(spacing: 4),
             );
   }
 
@@ -207,7 +213,7 @@ class _SettingsPageState extends State<SettingsPage> {
       }
     }
 
-    return ListTile(
+    return PlatformListTile(
       leading: const Icon(Icons.color_lens_outlined),
       title: i18n.themeColor.text(),
       subtitle: "#${selected.hexAlpha}".text(),
@@ -242,7 +248,7 @@ class ClearCacheTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return PlatformListTile(
       title: i18n.clearCacheTitle.text(),
       subtitle: i18n.clearCacheDesc.text(),
       leading: const Icon(Icons.folder_delete_outlined),
@@ -272,7 +278,7 @@ class WipeDataTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return PlatformListTile(
       title: i18n.wipeDataTitle.text(),
       subtitle: i18n.wipeDataDesc.text(),
       leading: const Icon(Icons.delete_forever_rounded),

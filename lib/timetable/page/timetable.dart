@@ -54,40 +54,48 @@ class _TimetableBoardPageState extends State<TimetableBoardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
+    return PlatformScaffold(
+      appBar: PlatformAppBar(
         title: $currentPos >> (ctx, pos) => i18n.weekOrderedName(number: pos.weekIndex + 1).text(),
-        actions: [
-          buildSwitchViewButton(),
-          buildMyTimetablesButton(),
-          buildMoreActionsButton(),
-        ],
-      ),
-      floatingActionButton: InkWell(
-        onLongPress: () async {
-          if ($displayMode.value == DisplayMode.weekly) {
-            await selectWeeklyTimetablePageToJump();
-          } else {
-            await selectDailyTimetablePageToJump();
-          }
+        material: (ctx, platform) {
+          return MaterialAppBarData(
+            actions: [
+              buildSwitchViewButton(),
+              buildMyTimetablesButton(),
+              buildMoreActionsButton(),
+            ],
+          );
         },
-        child: AutoHideFAB(
-          controller: scrollController,
-          child: const Icon(Icons.undo_rounded),
-          onPressed: () async {
-            final today = timetable.type.locate(DateTime.now());
-            if ($currentPos.value != today) {
-              eventBus.fire(JumpToPosEvent(today));
-            }
-          },
-        ),
       ),
       body: TimetableBoard(
         timetable: timetable,
         $displayMode: $displayMode,
         $currentPos: $currentPos,
       ),
+      material: (ctx, platform) {
+        return MaterialScaffoldData(
+          resizeToAvoidBottomInset: false,
+          floatingActionButton: InkWell(
+            onLongPress: () async {
+              if ($displayMode.value == DisplayMode.weekly) {
+                await selectWeeklyTimetablePageToJump();
+              } else {
+                await selectDailyTimetablePageToJump();
+              }
+            },
+            child: AutoHideFAB(
+              controller: scrollController,
+              child: const Icon(Icons.undo_rounded),
+              onPressed: () async {
+                final today = timetable.type.locate(DateTime.now());
+                if ($currentPos.value != today) {
+                  eventBus.fire(JumpToPosEvent(today));
+                }
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 

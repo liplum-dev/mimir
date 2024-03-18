@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sit/design/adaptive/dialog.dart';
 import 'package:sit/design/widgets/list_tile.dart';
@@ -26,14 +27,23 @@ class AboutSettingsPage extends StatefulWidget {
 class _AboutSettingsPageState extends State<AboutSettingsPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PlatformScaffold(
       body: CustomScrollView(
         physics: const RangeMaintainingScrollPhysics(),
         slivers: <Widget>[
-          SliverAppBar.large(
-            pinned: true,
-            snap: false,
-            floating: false,
+          PlatformSliverAppBar(
+            material: (ctx, platform) {
+              return MaterialSliverAppBarData(
+                pinned: true,
+                snap: false,
+                floating: false,
+              );
+            },
+            cupertino: (ctx,p){
+              return CupertinoSliverAppBarData(
+                previousPageTitle: i18n.title,
+              );
+            },
             title: i18n.about.title.text(),
           ),
           SliverList.list(
@@ -49,7 +59,7 @@ class _AboutSettingsPageState extends State<AboutSettingsPage> {
                   },
                 ),
               ),
-              ListTile(
+              PlatformListTile(
                 title: i18n.about.termsOfUse.text(),
                 trailing: IconButton(
                   icon: const Icon(Icons.open_in_browser),
@@ -59,7 +69,7 @@ class _AboutSettingsPageState extends State<AboutSettingsPage> {
                   },
                 ),
               ),
-              ListTile(
+              PlatformListTile(
                 title: i18n.about.privacyPolicy.text(),
                 trailing: IconButton(
                   icon: const Icon(Icons.open_in_browser),
@@ -69,13 +79,13 @@ class _AboutSettingsPageState extends State<AboutSettingsPage> {
                   },
                 ),
               ),
-              AboutListTile(
-                // FIXME: icon is buggy
-                // icon: SvgPicture.asset("assets/icon.svg").sizedAll(32),
-                applicationName: R.appNameL10n,
-                applicationVersion: R.currentVersion.version.toString(),
-                applicationLegalese: "Copyright©️2023 Liplum Dev. All Rights Reserved.",
-              ),
+              // AboutListTile(
+              //   // FIXME: icon is buggy
+              //   // icon: SvgPicture.asset("assets/icon.svg").sizedAll(32),
+              //   applicationName: R.appNameL10n,
+              //   applicationVersion: R.currentVersion.version.toString(),
+              //   applicationLegalese: "Copyright©️2023 Liplum Dev. All Rights Reserved.",
+              // ),
             ],
           ),
         ],
@@ -114,7 +124,7 @@ class _VersionTileState extends State<VersionTile> {
   @override
   Widget build(BuildContext context) {
     final version = R.currentVersion;
-    return ListTile(
+    return PlatformListTile(
       leading: switch (version.platform) {
         AppPlatform.iOS || AppPlatform.macOS => const Icon(UniconsLine.apple),
         AppPlatform.android => const Icon(Icons.android),

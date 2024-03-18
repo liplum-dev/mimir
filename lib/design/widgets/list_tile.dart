@@ -1,12 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:sit/design/adaptive/dialog.dart';
 import 'package:sit/l10n/common.dart';
 
 class DetailListTile extends StatelessWidget {
-  final String? title;
+  final String title;
   final String? subtitle;
   final Widget? leading;
   final Widget? trailing;
@@ -14,7 +15,7 @@ class DetailListTile extends StatelessWidget {
 
   const DetailListTile({
     super.key,
-    this.title,
+    required this.title,
     this.subtitle,
     this.copyable = true,
     this.leading,
@@ -39,12 +40,16 @@ class DetailListTile extends StatelessWidget {
                   await Clipboard.setData(ClipboardData(text: subtitle));
                 })
               : null),
-      child: ListTile(
+      child: PlatformListTile(
         leading: leading,
         trailing: trailing,
-        title: title?.text(),
+        title: title.text(),
         subtitle: subtitle?.text(),
-        visualDensity: VisualDensity.compact,
+        material: (ctx,p){
+          return MaterialListTileData(
+            visualDensity: VisualDensity.compact,
+          );
+        },
       ),
     );
   }
