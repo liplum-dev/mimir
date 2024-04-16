@@ -585,6 +585,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.0"
+  file_open_handler:
+    dependency: "direct main"
+    description:
+      name: file_open_handler
+      sha256: "4efc4f20559c3d19370bd8ff6ebc7191a74c452fdbf6d2c0c620020b90e671c8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   file_picker:
     dependency: "direct main"
     description:

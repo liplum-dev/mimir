@@ -84,6 +84,8 @@ dependencies:
   app_links: ^4.0.1
   # Open with other APP/programs
   open_file: ^3.3.2
+  # Handle "Open with..." on MacOS
+  file_open_handler: ^0.0.2
   url_launcher: ^6.2.6
   # Open Android / iOS system image picker
   image_picker: ^1.0.8
