@@ -7,6 +7,7 @@ import 'package:sit/timetable/entity/background.dart';
 class TimetableBackground extends StatelessWidget {
   final BackgroundImage background;
   final bool fade;
+  final ValueListenable<double>? verticalOffset;
   final Duration fadeDuration;
 
   const TimetableBackground({
@@ -14,6 +15,7 @@ class TimetableBackground extends StatelessWidget {
     required this.background,
     this.fade = true,
     this.fadeDuration = Durations.long2,
+    this.verticalOffset,
   });
 
   @override
@@ -27,6 +29,7 @@ class TimetableBackground extends StatelessWidget {
         background: background,
         fade: fade,
         fadeDuration: kDebugMode ? const Duration(milliseconds: 1000) : Durations.long1,
+        verticalOffset: verticalOffset,
       );
     }
   }
@@ -36,11 +39,13 @@ class _TimetableBackgroundImpl extends StatefulWidget {
   final BackgroundImage background;
   final bool fade;
   final Duration fadeDuration;
+  final ValueListenable<double>? verticalOffset;
 
   const _TimetableBackgroundImpl({
     required this.background,
     this.fade = true,
     this.fadeDuration = Durations.long2,
+    this.verticalOffset,
   });
 
   @override
@@ -90,10 +95,27 @@ class _TimetableBackgroundImplState extends State<_TimetableBackgroundImpl> with
 
   @override
   Widget build(BuildContext context) {
+    final verticalOffset = widget.verticalOffset;
+    if (verticalOffset != null) {
+      return AnimatedBuilder(
+        animation: verticalOffset,
+        builder: (context, _) {
+          return buildImage(align: Alignment(0, verticalOffset.value));
+        },
+      );
+    } else {
+      return buildImage();
+    }
+  }
+
+  Widget buildImage({
+    Alignment align = Alignment.center,
+  }) {
     final background = widget.background;
     return Image.file(
       Files.timetable.backgroundFile,
       opacity: $opacity,
+      alignment: align,
       filterQuality: background.filterQuality,
       repeat: background.imageRepeat,
     );

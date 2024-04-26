@@ -9,7 +9,7 @@ import 'background.dart';
 import 'daily.dart';
 import 'weekly.dart';
 
-class TimetableBoard extends StatelessWidget {
+class TimetableBoard extends StatefulWidget {
   final SitTimetableEntity timetable;
 
   final ValueNotifier<DisplayMode> $displayMode;
@@ -24,6 +24,13 @@ class TimetableBoard extends StatelessWidget {
   });
 
   @override
+  State<TimetableBoard> createState() => _TimetableBoardState();
+}
+
+class _TimetableBoardState extends State<TimetableBoard> {
+  final verticalOffset = ValueNotifier(0.0);
+
+  @override
   Widget build(BuildContext context) {
     final style = TimetableStyle.of(context);
     final background = style.background;
@@ -32,6 +39,7 @@ class TimetableBoard extends StatelessWidget {
         Positioned.fill(
           child: TimetableBackground(
             background: background,
+            verticalOffset: verticalOffset,
           ),
         ),
         buildBoard(),
@@ -40,19 +48,40 @@ class TimetableBoard extends StatelessWidget {
     return buildBoard();
   }
 
+  void onVerticalScrollUpdate(DragUpdateDetails details) {
+    verticalOffset.value += details.delta.dy  * 0.005;
+  }
+
   Widget buildBoard() {
-    return $displayMode >>
-        (ctx, mode) => AnimatedSwitcher(
-              duration: Durations.short4,
-              child: mode == DisplayMode.daily
-                  ? DailyTimetable(
-                      $currentPos: $currentPos,
-                      timetable: timetable,
-                    )
-                  : WeeklyTimetable(
-                      $currentPos: $currentPos,
-                      timetable: timetable,
-                    ),
-            );
+    final $displayMode = widget.$displayMode;
+    final $currentPos = widget.$currentPos;
+    final timetable = widget.timetable;
+    return NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        if (n.metrics.axis == Axis.vertical) {
+          if (n is ScrollUpdateNotification) {
+            final details = n.dragDetails;
+            if (details != null) {
+              onVerticalScrollUpdate(details);
+            }
+            print("update: ${n.dragDetails}");
+          }
+        }
+        return true;
+      },
+      child: $displayMode >>
+          (ctx, mode) => AnimatedSwitcher(
+                duration: Durations.short4,
+                child: mode == DisplayMode.daily
+                    ? DailyTimetable(
+                        $currentPos: $currentPos,
+                        timetable: timetable,
+                      )
+                    : WeeklyTimetable(
+                        $currentPos: $currentPos,
+                        timetable: timetable,
+                      ),
+              ),
+    );
   }
 }
