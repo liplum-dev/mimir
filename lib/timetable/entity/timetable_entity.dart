@@ -16,6 +16,8 @@ import 'patch.dart';
 import 'platte.dart';
 import 'timetable.dart';
 
+part 'timetable_entity.g.dart';
+
 class SitTimetableEntityState {
   final SitTimetable type;
 
@@ -30,30 +32,87 @@ class SitTimetableEntity
   final EntityNode? parent = null;
 
   @override
-  List<SitTimetableWeek> get children => weeks;
+  List<SitTimetableDay> get children => days;
 
-  /// The Default number of weeks is 20.
-  final List<SitTimetableWeek> weeks = [];
+  /// The Default number of weeks is 20 * 7.
+  final List<SitTimetableDay> days = [];
 
   final _courseCode2CoursesCache = <String, List<SitCourse>>{};
+
+  List<SitTimetableWeek> get weeks => List.generate(maxWeekLength, (index) => getWeek(index));
 
   SitTimetableEntity();
 
   @override
   SitTimetable get type => state.type;
 
+  SitTimetableWeek getWeek(int weekIndex) {
+    return SitTimetableWeek(days.sublist(weekIndex * 7, weekIndex * 7 + 7));
+  }
+
+  SitTimetableDay getDay(int weekIndex, Weekday weekday) {
+    return days[weekIndex * 7 + weekday.index];
+  }
+
   @override
   void build() {
-    weeks.clear();
-    weeks.addAll(List.generate(maxWeekLength, (index) => SitTimetableWeek(index: index)..parent = this));
+    days.clear();
+    days.addAll(List.generate(
+        maxWeekLength * 7,
+        (index) => SitTimetableDay(
+              weekIndex: index ~/ 7,
+              weekday: Weekday.fromIndex(index % 7),
+            )..parent = this));
     super.build();
   }
 
-  //
-  // @override
-  // void onStateChange(SitTimetableEntityState oldState, SitTimetableEntityState newState) {
-  //   super.onStateChange(oldState, newState);
-  // }
+  @override
+  void onStateChange(SitTimetableEntityState? oldState, SitTimetableEntityState newState) {
+    travelEvent(
+      EntityNodeStateChangeEvent(
+        source: this,
+        oldState: oldState,
+        newState: newState,
+      ),
+      depth: 1,
+    );
+  }
+
+  void generateLessons() {
+    for (final course in state.type.courses.values) {
+      if (course.hidden) continue;
+      final timeslots = course.timeslots;
+      for (final weekIndex in course.weekIndices.getWeekIndices()) {
+        assert(
+          0 <= weekIndex && weekIndex < maxWeekLength,
+          "Week index is more out of range [0,$maxWeekLength) but $weekIndex.",
+        );
+        if (0 <= weekIndex && weekIndex < maxWeekLength) {
+          final week = weeks[weekIndex];
+          final day = week.days[course.dayIndex];
+
+          day.state = SitTimetableDayState();
+
+          final parts = <SitTimetableLessonPart>[];
+          final lesson = SitTimetableLesson(
+            course: course,
+            parts: parts,
+          );
+          for (int slot = timeslots.start; slot <= timeslots.end; slot++) {
+            final part = SitTimetableLessonPart(
+              type: lesson,
+              index: slot,
+            );
+            parts.add(part);
+            day.add(
+              at: slot,
+              lesson: part,
+            );
+          }
+        }
+      }
+    }
+  }
 
   List<SitCourse> findAndCacheCoursesByCourseCode(String courseCode) {
     final found = _courseCode2CoursesCache[courseCode];
@@ -112,76 +171,52 @@ class SitTimetableEntity
   }
 }
 
-class SitTimetableWeekState {
-  const SitTimetableWeekState();
-}
-
-class SitTimetableWeek with EntityNodeBase<SitTimetableWeekState> implements EntityNode<SitTimetableWeekState> {
-  @override
-  late final SitTimetableEntity parent;
-
-  @override
-  List<SitTimetableDay> get children => days;
-
-  @override
-  late SitTimetableWeekState state;
-
-  final int index;
-
-  /// The 7 days in a week
-  final List<SitTimetableDay> days = [];
-
-  SitTimetableWeek({
-    required this.index,
-  });
-
-  @override
-  void build() {
-    days.clear();
-    days.addAll(List.generate(7, (index) => SitTimetableDay(index:index)..parent = this));
-    super.build();
-  }
+extension type SitTimetableWeek(List<SitTimetableDay> days) {
+  int get index => days.first.weekIndex;
 
   bool get isFree => days.every((day) => day.isFree);
-
-  @override
-  String toString() => "$days";
 
   SitTimetableDay operator [](Weekday weekday) => days[weekday.index];
 
   operator []=(Weekday weekday, SitTimetableDay day) => days[weekday.index] = day;
 }
 
+@CopyWith(skipFields: true)
 class SitTimetableDayState {
+  final List<SitTimetableLesson> lessons;
 
-  const SitTimetableDayState();
+  const SitTimetableDayState({
+    required this.lessons,
+  });
 }
 
 class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements EntityNode<SitTimetableDayState> {
   @override
-  late final SitTimetableWeek parent;
+  late final SitTimetableEntity parent;
 
-  final int index;
+  final int weekIndex;
+  final Weekday weekday;
 
   /// The Default number of lessons in one day is 11. But it can be extended.
   /// For example,
   /// A Timeslot could contain one or more lesson.
   final List<SitTimetableLessonSlot> timeslot2LessonSlot = [];
 
-  late final Set<SitCourse> associatedCourses =
+  Set<SitCourse> get associatedCourses =>
       timeslot2LessonSlot.map((slot) => slot.lessons).flattened.map((part) => part.course).toSet();
 
   @override
   List<SitTimetableLessonSlot> get children => timeslot2LessonSlot;
 
   DateTime get date => reflectWeekDayIndexToDate(
-        startDate: parent.parent.startDate,
-        weekIndex: parent.index,
-        weekday: Weekday.fromIndex(index),
+        startDate: parent.startDate,
+        weekIndex: weekIndex,
+        weekday: weekday,
       );
 
   SitTimetableDay({
-    required this.index,
+    required this.weekIndex,
+    required this.weekday,
   });
 
   @override
@@ -289,12 +324,9 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
   }
 
   @override
-  String toString() => {
-        "date": _formatDay(date),
-        "index": index,
-        "timeslot2LessonSlot": timeslot2LessonSlot,
-        "associatedCourses": associatedCourses,
-      }.toString();
+  String toString() {
+    return "${_formatDay(date)} [$weekIndex-${weekday.index}] $timeslot2LessonSlot";
+  }
 }
 
 class SitTimetableLessonSlotState {
@@ -371,6 +403,7 @@ class SitTimetableLesson {
   }
 }
 
+@CopyWith(skipFields: true)
 class SitTimetableLessonPartState {
   final int index;
   final SitTimetableLesson type;
@@ -381,7 +414,6 @@ class SitTimetableLessonPartState {
   });
 }
 
-@CopyWith(skipFields: true)
 class SitTimetableLessonPart
     with EntityNodeBase<SitTimetableLessonPartState>
     implements EntityNode<SitTimetableLessonPartState> {

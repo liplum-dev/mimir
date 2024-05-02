@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
+
+bool _acceptAll(EntityNode node) => true;
 
 class EntityNodeEvent {
   final EntityNode source;
@@ -29,19 +32,33 @@ class EntityNodeStateChangeEvent<TState> extends EntityNodeEvent {
 abstract interface class EntityNode<State> {
   late State state;
 
+  int get depth;
+
   EntityNode? get parent;
 
   List<EntityNode> get children;
+
+  bool containsChild(EntityNode node);
 
   bool get hasBuilt;
 
   void build();
 
-  FutureOr<void> travelEvent(EntityNodeEvent event);
+  FutureOr<void> travelEvent(
+    EntityNodeEvent event, {
+    int depth = -1,
+    bool Function(EntityNode node) filter = _acceptAll,
+  });
 
-  FutureOr<void> bubbleEvent(EntityNodeEvent event);
+  FutureOr<void> bubbleEvent(
+    EntityNodeEvent event, {
+    int depth = -1,
+    bool Function(EntityNode node) filter = _acceptAll,
+  });
 
-  FutureOr<void> onHandleEvent(EntityNodeEvent event);
+  FutureOr<void> onBubbleEvent(EntityNodeEvent event);
+
+  FutureOr<void> onTravelEvent(EntityNodeEvent event);
 
   static void buildTree(EntityNode root) {
     assert(root.isRoot);
@@ -72,6 +89,21 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
   dynamic _state = empty;
 
   @override
+  bool containsChild(EntityNode node) {
+    return children.contains(node);
+  }
+
+  @override
+  int get depth {
+    int d = 0;
+    final cur = parent;
+    while (cur != null) {
+      d++;
+    }
+    return d;
+  }
+
+  @override
   TState get state => _state == empty ? throw UnsupportedError("state has not been initialized.") : _state as TState;
 
   bool get stateInitialized => _state != empty;
@@ -83,7 +115,6 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
     onStateChange(old, state);
   }
 
-  @mustCallSuper
   void onStateChange(TState? oldState, TState newState) {
     travelEvent(EntityNodeStateChangeEvent(
       source: this,
@@ -93,7 +124,14 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
   }
 
   @override
-  FutureOr<void> onHandleEvent(EntityNodeEvent event) {
+  FutureOr<void> onBubbleEvent(EntityNodeEvent event) {
+    if (kDebugMode) {
+      print("$event on $runtimeType#$hashCode");
+    }
+  }
+
+  @override
+  FutureOr<void> onTravelEvent(EntityNodeEvent event) {
     if (kDebugMode) {
       print("$event on $runtimeType#$hashCode");
     }
@@ -106,29 +144,49 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
   }
 
   @override
-  FutureOr<void> travelEvent(EntityNodeEvent event) async {
+  FutureOr<void> travelEvent(
+    EntityNodeEvent event, {
+    int depth = -1,
+    bool Function(EntityNode node) filter = _acceptAll,
+  }) async {
     final queue = Queue<EntityNode>();
     queue.addAll(children);
 
     while (queue.isNotEmpty) {
       final child = queue.removeFirst();
-      await child.onHandleEvent(event);
-      if (event.consumed) {
-        break;
+      if (filter(child)) {
+        await child.onBubbleEvent(event);
+        if (event.consumed) {
+          break;
+        }
+        if (depth < 0 || child.depth <= depth) {
+          queue.addAll(child.children);
+        }
       }
-      queue.addAll(child.children);
     }
   }
 
   @override
-  FutureOr<void> bubbleEvent(EntityNodeEvent event) async {
+  FutureOr<void> bubbleEvent(
+    EntityNodeEvent event, {
+    int depth = -1,
+    bool Function(EntityNode node) filter = _acceptAll,
+  }) async {
     var cur = parent;
+    int height = 0;
     while (cur != null) {
-      await cur.onHandleEvent(event);
-      if (event.consumed) {
-        break;
+      await cur.onBubbleEvent(event);
+      if (filter(cur)) {
+        if (event.consumed) {
+          break;
+        }
+        if (depth < 0 || height <= depth) {
+          cur = cur.parent;
+          height++;
+        } else {
+          break;
+        }
       }
-      cur = cur.parent;
     }
   }
 }
