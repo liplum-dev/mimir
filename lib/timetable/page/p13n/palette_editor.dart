@@ -66,7 +66,6 @@ class _TimetablePaletteEditorPageState extends ConsumerState<TimetablePaletteEdi
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final timetable = ref.watch(TimetableInit.storage.timetable.$selectedRow);
