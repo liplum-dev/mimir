@@ -204,6 +204,34 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
     super.build();
   }
 
+  @override
+  void onStateChange(SitTimetableDayState? oldState, SitTimetableDayState newState) {
+    super.onStateChange(oldState, newState);
+    _generateLessons();
+  }
+
+  void _generateLessons() {
+    final slot2parts = <SitTimetableLessonSlot, List<SitTimetableLessonPart>>{};
+    final lessons = state.lessons;
+    for (final lesson in lessons) {
+      final timeslots = lesson.course.timeslots;
+      for (int slotIndex = timeslots.start; slotIndex <= timeslots.end; slotIndex++) {
+        final part = SitTimetableLessonPart(
+          type: lesson,
+          index: slotIndex,
+        );
+        if (0 <= slotIndex && slotIndex < slots.length) {
+          final slot = slots[slotIndex];
+          final parts = slot2parts[slot] ??= [];
+          parts.add(part);
+        }
+      }
+    }
+    for (final MapEntry(key: slot, value: parts) in slot2parts.entries) {
+      slot.state = SitTimetableLessonSlotState(parts: parts);
+    }
+  }
+
   bool get isFree => slots.every((lessonSlot) => lessonSlot.lessons.isEmpty);
 
   bool get hasAnyLesson => !isFree;
@@ -267,10 +295,10 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 }
 
 class SitTimetableLessonSlotState {
-  final List<SitTimetableLessonPart> lessons;
+  final List<SitTimetableLessonPart> parts;
 
   const SitTimetableLessonSlotState({
-    required this.lessons,
+    required this.parts,
   });
 }
 
@@ -289,6 +317,13 @@ class SitTimetableLessonSlot
   void build() {
     lessons.clear();
     super.build();
+  }
+
+  @override
+  FutureOr<void> onTravelEvent(EntityNodeEvent event) {
+    if (event is EntityNodeStateChangeEvent<SitTimetableDayState> && event.source == parent) {
+      super.onTravelEvent(event);
+    }
   }
 
   SitTimetableLessonPart? lessonAt(int index) {

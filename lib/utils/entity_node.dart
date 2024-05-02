@@ -42,6 +42,7 @@ abstract interface class EntityNode<State> {
 
   bool get hasBuilt;
 
+  /// [parent] is accessible within the [build] call.
   void build();
 
   FutureOr<void> travelEvent(
@@ -127,14 +128,14 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
   @override
   FutureOr<void> onBubbleEvent(EntityNodeEvent event) {
     if (kDebugMode) {
-      print("$event on $runtimeType#$hashCode");
+      print("[Bubble] $event on $runtimeType#$hashCode");
     }
   }
 
   @override
   FutureOr<void> onTravelEvent(EntityNodeEvent event) {
     if (kDebugMode) {
-      print("$event on $runtimeType#$hashCode");
+      print("[Travel] $event on $runtimeType#$hashCode");
     }
   }
 
