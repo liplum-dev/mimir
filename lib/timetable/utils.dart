@@ -274,7 +274,7 @@ String convertTimetable2ICal({
   final added = <SitTimetableLesson>{};
   for (final week in timetable.weeks) {
     for (final day in week.days) {
-      for (final lessonSlot in day.timeslot2LessonSlot) {
+      for (final lessonSlot in day.timeslots) {
         for (final part in lessonSlot.lessons) {
           final lesson = part.type;
           if (merged && added.contains(lesson)) {

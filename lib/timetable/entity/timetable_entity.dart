@@ -40,8 +40,6 @@ class SitTimetableEntity
   /// The Default number of weeks is 20 * 7.
   final List<SitTimetableDay> days = [];
 
-  final _courseCode2CoursesCache = <String, List<SitCourse>>{};
-
   List<SitTimetableWeek> get weeks => List.generate(maxWeekLength, (index) => getWeek(index));
 
   SitTimetableEntity();
@@ -180,13 +178,13 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
   /// The Default number of lessons in one day is 11. But it can be extended.
   /// For example,
   /// A Timeslot could contain one or more lesson.
-  final List<SitTimetableLessonSlot> timeslot2LessonSlot = [];
+  final List<SitTimetableLessonSlot> timeslots = [];
 
   Set<SitCourse> get associatedCourses =>
-      timeslot2LessonSlot.map((slot) => slot.lessons).flattened.map((part) => part.course).toSet();
+      timeslots.map((slot) => slot.lessons).flattened.map((part) => part.course).toSet();
 
   @override
-  List<SitTimetableLessonSlot> get children => timeslot2LessonSlot;
+  List<SitTimetableLessonSlot> get children => timeslots;
 
   DateTime get date => reflectWeekDayIndexToDate(
         startDate: parent.startDate,
@@ -201,24 +199,25 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 
   @override
   void build() {
-    timeslot2LessonSlot.clear();
-    timeslot2LessonSlot.addAll(List.generate(11, (index) => SitTimetableLessonSlot()..parent = this));
+    timeslots.clear();
+    timeslots.addAll(List.generate(11, (index) => SitTimetableLessonSlot()..parent = this));
     super.build();
   }
 
-  bool get isFree => timeslot2LessonSlot.every((lessonSlot) => lessonSlot.lessons.isEmpty);
+  bool get isFree => timeslots.every((lessonSlot) => lessonSlot.lessons.isEmpty);
+  bool get hasAnyLesson =>  !isFree;
 
   void add({required SitTimetableLessonPart lesson, required int at}) {
-    assert(0 <= at && at < timeslot2LessonSlot.length);
-    if (0 <= at && at < timeslot2LessonSlot.length) {
-      final lessonSlot = timeslot2LessonSlot[at];
+    assert(0 <= at && at < timeslots.length);
+    if (0 <= at && at < timeslots.length) {
+      final lessonSlot = timeslots[at];
       lessonSlot.lessons.add(lesson);
       lesson.type.parent = this;
     }
   }
 
   void clear() {
-    for (final lessonSlot in timeslot2LessonSlot) {
+    for (final lessonSlot in timeslots) {
       lessonSlot.lessons.clear();
     }
   }
@@ -236,10 +235,10 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
   }
 
   void setLessonSlots(Iterable<SitTimetableLessonSlot> v) {
-    timeslot2LessonSlot.clear();
-    timeslot2LessonSlot.addAll(v);
+    timeslots.clear();
+    timeslots.addAll(v);
 
-    for (final lessonSlot in timeslot2LessonSlot) {
+    for (final lessonSlot in timeslots) {
       lessonSlot.parent = this;
       for (final part in lessonSlot.lessons) {
         part.type.parent = this;
@@ -249,63 +248,20 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 
   List<SitTimetableLessonSlot> cloneLessonSlots() {
     return [];
-    // final old2newLesson = <SitTimetableLesson, SitTimetableLesson>{};
-    // final timeslots = List.of(
-    //   timeslot2LessonSlot.map(
-    //     (lessonSlot) {
-    //       return SitTimetableLessonSlot(
-    //         lessons: List.of(
-    //           lessonSlot.lessons.map(
-    //             (lessonPart) {
-    //               final oldLesson = lessonPart.type;
-    //               final lesson = old2newLesson[oldLesson] ??
-    //                   oldLesson.copyWith(
-    //                     parts: [],
-    //                   );
-    //               old2newLesson[oldLesson] ??= lesson;
-    //               final part = lessonPart.copyWith(
-    //                 type: lesson,
-    //               );
-    //               return part;
-    //             },
-    //           ),
-    //         ),
-    //       );
-    //     },
-    //   ),
-    // );
-    //
-    // for (final slot in timeslots) {
-    //   for (final lessonPart in slot.lessons) {
-    //     lessonPart.type.parts
-    //         .addAll(timeslots.map((slot) => slot.lessons).flattened.where((part) => part.type == lessonPart.type));
-    //   }
-    // }
-    // return timeslots;
   }
 
   /// At all lessons [layer]
   Iterable<SitTimetableLessonPart> browseLessonsAt({required int layer}) sync* {
-    for (final lessonSlot in timeslot2LessonSlot) {
+    for (final lessonSlot in timeslots) {
       if (0 <= layer && layer < lessonSlot.lessons.length) {
         yield lessonSlot.lessons[layer];
       }
     }
   }
 
-  bool hasAnyLesson() {
-    for (final lessonSlot in timeslot2LessonSlot) {
-      if (lessonSlot.lessons.isNotEmpty) {
-        assert(associatedCourses.isNotEmpty);
-        return true;
-      }
-    }
-    return false;
-  }
-
   @override
   String toString() {
-    return "${_formatDay(date)} [$weekIndex-${weekday.index}] $timeslot2LessonSlot";
+    return "${_formatDay(date)} [$weekIndex-${weekday.index}] $timeslots";
   }
 }
 

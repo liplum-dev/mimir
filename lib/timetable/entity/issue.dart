@@ -71,8 +71,8 @@ extension SitTimetable4IssueX on SitTimetable {
       final entity = resolve();
       for (final week in entity.weeks) {
         for (final day in week.days) {
-          for (var timeslot = 0; timeslot < day.timeslot2LessonSlot.length; timeslot++) {
-            final lessonSlot = day.timeslot2LessonSlot[timeslot];
+          for (var timeslot = 0; timeslot < day.timeslots.length; timeslot++) {
+            final lessonSlot = day.timeslots[timeslot];
             if (lessonSlot.lessons.length >= 2) {
               final issue = TimetableCourseOverlapIssue(
                 courseKeys: lessonSlot.lessons.map((l) => l.course.courseKey).toList(),

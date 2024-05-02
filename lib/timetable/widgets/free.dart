@@ -56,7 +56,7 @@ class FreeDayTip extends StatelessWidget {
         final dayIndexStart = weekIndex == i ? dayIndex : 0;
         for (int j = dayIndexStart; j < week.days.length; j++) {
           final day = week.days[j];
-          if (day.hasAnyLesson()) {
+          if (day.hasAnyLesson) {
             eventBus.fire(JumpToPosEvent(TimetablePos(weekIndex: i, weekday: Weekday.fromIndex(j))));
             return;
           }
@@ -70,7 +70,7 @@ class FreeDayTip extends StatelessWidget {
         final dayIndexStart = weekIndex == i ? dayIndex : week.days.length - 1;
         for (int j = dayIndexStart; 0 <= j; j--) {
           final day = week.days[j];
-          if (day.hasAnyLesson()) {
+          if (day.hasAnyLesson) {
             eventBus.fire(JumpToPosEvent(TimetablePos(weekIndex: i, weekday: Weekday.fromIndex(j))));
             return;
           }

@@ -37,7 +37,7 @@ void main() {
       final entity = timetable.resolve();
       final day4 = entity.getDaySinceStart(4)!;
       print(day4);
-      assert(day4.hasAnyLesson());
+      assert(day4.hasAnyLesson);
       assert(day4.associatedCourses.map((c) => c.courseKey).toSet().equalsElements({1, 2, 5, 6}));
       final day9 = entity.getDaySinceStart(9)!;
       print(day9);
@@ -49,7 +49,7 @@ void main() {
 
       final labourDayWeek = entity.getWeekOn(DateTime(2024, 5, 1))!;
       final labourDay = labourDayWeek.days[2];
-      assert(labourDay.hasAnyLesson());
+      assert(labourDay.hasAnyLesson);
       assert(labourDay.associatedCourses.length == 1);
       assert(labourDay.associatedCourses.first.courseKey == 4);
     });
@@ -58,7 +58,7 @@ void main() {
       final entity = timetable.resolve();
 
       final labourDay = entity.getDayOn(DateTime(2024, 5, 1))!;
-      assert(labourDay.hasAnyLesson());
+      assert(labourDay.hasAnyLesson);
       assert(labourDay.associatedCourses.length == 1);
       assert(labourDay.associatedCourses.first.courseKey == 4);
     });

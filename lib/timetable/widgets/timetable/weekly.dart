@@ -299,15 +299,15 @@ class TimetableOneWeek extends StatelessWidget {
         startDate: timetable.type.startDate,
       ),
     ));
-    for (int timeslot = 0; timeslot < day.timeslot2LessonSlot.length; timeslot++) {
-      final lessonSlot = day.timeslot2LessonSlot[timeslot];
+    for (int timeslot = 0; timeslot < day.timeslots.length; timeslot++) {
+      final lessonSlot = day.timeslots[timeslot];
 
       /// TODO: Multi-layer lesson slot
       final lesson = lessonSlot.lessonAt(0);
       if (lesson == null) {
         cells.add(DashLined(
           top: timeslot != 0,
-          bottom: timeslot != day.timeslot2LessonSlot.length - 1,
+          bottom: timeslot != day.timeslots.length - 1,
           child: SizedBox(width: cellSize.width, height: cellSize.height),
         ));
       } else {

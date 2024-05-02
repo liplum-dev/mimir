@@ -166,14 +166,14 @@ class _TimetableOneDayPageState extends State<TimetableOneDayPage> with Automati
     int weekIndex = widget.weekIndex;
     final week = widget.timetable.weeks[weekIndex];
     final day = week[widget.weekday];
-    if (!day.hasAnyLesson()) {
+    if (!day.hasAnyLesson) {
       return FreeDayTip(
         timetable: widget.timetable,
         weekIndex: weekIndex,
         weekday: widget.weekday,
       ).scrolled().center();
     } else {
-      final slotCount = day.timeslot2LessonSlot.length;
+      final slotCount = day.timeslots.length;
       final builder = _LessonRowBuilder(
         dividerBuilder: (dividerNumber) {
           return BreakDivider(title: dividerNumber == 1 ? i18n.lunchtime : i18n.dinnertime);
@@ -184,7 +184,7 @@ class _TimetableOneDayPageState extends State<TimetableOneDayPage> with Automati
           timeslot,
           buildLessonsInTimeslot(
             ctx,
-            day.timeslot2LessonSlot[timeslot].lessons,
+            day.timeslots[timeslot].lessons,
             timeslot,
           ),
         );
