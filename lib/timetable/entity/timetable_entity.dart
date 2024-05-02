@@ -45,9 +45,15 @@ class SitTimetableEntity
   @override
   void build() {
     weeks.clear();
-    weeks.addAll(List.generate(maxWeekLength, (index) => SitTimetableWeek()..parent = this));
+    weeks.addAll(List.generate(maxWeekLength, (index) => SitTimetableWeek(index: index)..parent = this));
     super.build();
   }
+
+  //
+  // @override
+  // void onStateChange(SitTimetableEntityState oldState, SitTimetableEntityState newState) {
+  //   super.onStateChange(oldState, newState);
+  // }
 
   List<SitCourse> findAndCacheCoursesByCourseCode(String courseCode) {
     final found = _courseCode2CoursesCache[courseCode];
@@ -74,9 +80,6 @@ class SitTimetableEntity
   Semester get semester => type.semester;
 
   String get signature => type.signature;
-
-  @override
-  FutureOr<void> onHandleEvent(EntityNodeEvent event) {}
 
   SitTimetableDay? getDaySinceStart(int days) {
     if (days > maxWeekLength * 7) return null;
@@ -110,11 +113,7 @@ class SitTimetableEntity
 }
 
 class SitTimetableWeekState {
-  final int index;
-
-  const SitTimetableWeekState({
-    required this.index,
-  });
+  const SitTimetableWeekState();
 }
 
 class SitTimetableWeek with EntityNodeBase<SitTimetableWeekState> implements EntityNode<SitTimetableWeekState> {
@@ -127,17 +126,19 @@ class SitTimetableWeek with EntityNodeBase<SitTimetableWeekState> implements Ent
   @override
   late SitTimetableWeekState state;
 
-  int get index => state.index;
+  final int index;
 
   /// The 7 days in a week
   final List<SitTimetableDay> days = [];
 
-  SitTimetableWeek();
+  SitTimetableWeek({
+    required this.index,
+  });
 
   @override
   void build() {
     days.clear();
-    days.addAll(List.generate(7, (index) => SitTimetableDay()..parent = this));
+    days.addAll(List.generate(7, (index) => SitTimetableDay(index:index)..parent = this));
     super.build();
   }
 
@@ -149,24 +150,18 @@ class SitTimetableWeek with EntityNodeBase<SitTimetableWeekState> implements Ent
   SitTimetableDay operator [](Weekday weekday) => days[weekday.index];
 
   operator []=(Weekday weekday, SitTimetableDay day) => days[weekday.index] = day;
-
-  @override
-  FutureOr<void> onHandleEvent(EntityNodeEvent event) {}
 }
 
 class SitTimetableDayState {
-  final int index;
 
-  const SitTimetableDayState({
-    required this.index,
-  });
+  const SitTimetableDayState();
 }
 
 class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements EntityNode<SitTimetableDayState> {
   @override
   late final SitTimetableWeek parent;
 
-  int get index => state.index;
+  final int index;
 
   /// The Default number of lessons in one day is 11. But it can be extended.
   /// For example,
@@ -179,16 +174,15 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
   @override
   List<SitTimetableLessonSlot> get children => timeslot2LessonSlot;
 
-  @override
-  FutureOr<void> onHandleEvent(EntityNodeEvent event) {}
-
   DateTime get date => reflectWeekDayIndexToDate(
         startDate: parent.parent.startDate,
         weekIndex: parent.index,
         weekday: Weekday.fromIndex(index),
       );
 
-  SitTimetableDay();
+  SitTimetableDay({
+    required this.index,
+  });
 
   @override
   void build() {
@@ -324,8 +318,6 @@ class SitTimetableLessonSlot
     super.build();
   }
 
-  FutureOr<void> onHandleEvent(EntityNodeEvent event) {}
-
   SitTimetableLessonPart? lessonAt(int index) {
     return lessons.elementAtOrNull(index);
   }
@@ -399,9 +391,6 @@ class SitTimetableLessonPart
   @override
   final List<EntityNode> children = const [];
 
-  @override
-  FutureOr<void> onHandleEvent(EntityNodeEvent event) {}
-
   /// The start index of this lesson in a [SitTimetableWeek]
 
   late SitTimetableDay _dayCache = type.parent;
@@ -443,6 +432,7 @@ extension SitTimetable4EntityX on SitTimetable {
   SitTimetableEntity resolve() {
     final entity = SitTimetableEntity();
     EntityNode.buildTree(entity);
+    entity.state = SitTimetableEntityState(type: this);
     return entity;
     // final weeks = entity.weeks;
     //

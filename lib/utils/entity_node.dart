@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
 class EntityNodeEvent {
@@ -14,9 +15,9 @@ class EntityNodeEvent {
   });
 }
 
-class EntityNodeStateChangeEvent<State> extends EntityNodeEvent {
-  final State oldState;
-  final State newState;
+class EntityNodeStateChangeEvent<TState> extends EntityNodeEvent {
+  final TState? oldState;
+  final TState newState;
 
   EntityNodeStateChangeEvent({
     required super.source,
@@ -44,6 +45,7 @@ abstract interface class EntityNode<State> {
 
   static void buildTree(EntityNode root) {
     assert(root.isRoot);
+    root.build();
     final queue = Queue<EntityNode>();
     queue.addAll(root.children);
 
@@ -63,28 +65,38 @@ extension EntityNodeX on EntityNode {
   bool get isLeaf => children.isEmpty;
 }
 
-abstract mixin class EntityNodeBase<State> implements EntityNode<State> {
+abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
   @override
-  late final bool hasBuilt;
-
-  late State _state;
-
-  @override
-  State get state => _state;
+  late bool hasBuilt = false;
+  static const empty = Object();
+  dynamic _state = empty;
 
   @override
-  set state(State state) {
-    final old = _state;
+  TState get state => _state == empty ? throw UnsupportedError("state has not been initialized.") : _state as TState;
+
+  bool get stateInitialized => _state != empty;
+
+  @override
+  set state(TState state) {
+    final old = stateInitialized ? _state as TState : null;
     _state = state;
     onStateChange(old, state);
   }
 
-  void onStateChange(State oldState, State newState) {
+  @mustCallSuper
+  void onStateChange(TState? oldState, TState newState) {
     travelEvent(EntityNodeStateChangeEvent(
       source: this,
       oldState: oldState,
       newState: newState,
     ));
+  }
+
+  @override
+  FutureOr<void> onHandleEvent(EntityNodeEvent event) {
+    if (kDebugMode) {
+      print("$event on $runtimeType#$hashCode");
+    }
   }
 
   @override
@@ -101,6 +113,9 @@ abstract mixin class EntityNodeBase<State> implements EntityNode<State> {
     while (queue.isNotEmpty) {
       final child = queue.removeFirst();
       await child.onHandleEvent(event);
+      if (event.consumed) {
+        break;
+      }
       queue.addAll(child.children);
     }
   }
@@ -110,6 +125,9 @@ abstract mixin class EntityNodeBase<State> implements EntityNode<State> {
     var cur = parent;
     while (cur != null) {
       await cur.onHandleEvent(event);
+      if (event.consumed) {
+        break;
+      }
       cur = cur.parent;
     }
   }
