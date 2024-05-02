@@ -24,7 +24,7 @@ Future<void> checkAppUpdate({
 }) async {
   if (kIsWeb) return;
   try {
-    if (UniversalPlatform.isIOS || UniversalPlatform.isMacOS) {
+    if (R.debugCupertino || UniversalPlatform.isIOS || UniversalPlatform.isMacOS) {
       await _checkAppUpdateFromApple(
         context: context,
         delayAtLeast: delayAtLeast,

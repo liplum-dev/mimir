@@ -82,7 +82,7 @@ class _AboutSettingsPageState extends State<AboutSettingsPage> {
                 // icon: SvgPicture.asset("assets/icon.svg").sizedAll(32),
                 applicationName: R.appNameL10n,
                 applicationVersion: R.currentVersion.version.toString(),
-                applicationLegalese: "Copyright©️2023 Liplum Dev. All Rights Reserved.",
+                applicationLegalese: "Copyright©️2023–2024 Liplum Dev. All Rights Reserved.",
               ),
             ],
           ),

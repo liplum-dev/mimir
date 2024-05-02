@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "SIT Life" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "life.mysit.SITLife" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 Liplum Dev. All Rights Reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2023–2024 Liplum Dev. All Rights Reserved." "\0"
             VALUE "OriginalFilename", "SIT_Life.exe" "\0"
             VALUE "ProductName", "SIT Life" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

@@ -2,14 +2,13 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart' hide isCupertino;
 import 'package:rettulf/rettulf.dart';
 import 'package:sit/design/adaptive/foundation.dart';
 import 'package:sit/design/adaptive/menu.dart';
 import 'package:sit/design/adaptive/multiplatform.dart';
 import 'package:sit/design/widgets/card.dart';
 import 'package:super_context_menu/super_context_menu.dart';
-import 'package:universal_platform/universal_platform.dart';
 
 enum EntryActionType {
   edit,
@@ -220,25 +219,32 @@ class EntryCard extends StatelessWidget {
         ],
       ),
     ].column(caa: CrossAxisAlignment.start).padOnly(t: 12, l: 12, r: 8, b: 4);
-    if (UniversalPlatform.isIOS) {
-      widget = GestureDetector(
-        onTap: () async {
-          await context.showSheet((ctx) => detailsBuilder(context, buildDetailsActions));
-        },
-        child: widget,
+    if (isCupertino) {
+      return GestureDetector(
+        onTap: () => showDetailsSheet(context),
+        child: selectedCard(
+          child: widget,
+        ),
       );
     } else {
-      widget = InkWell(
-        onTap: () async {
-          await context.showSheet((ctx) => detailsBuilder(context, buildDetailsActions));
-        },
-        child: widget,
+      return selectedCard(
+        child: InkWell(
+          onTap: () => showDetailsSheet(context),
+          child: widget,
+        ),
       );
     }
-    return widget.inAnyCard(
+  }
+
+  Widget selectedCard({required Widget child}) {
+    return child.inAnyCard(
       type: selected ? CardVariant.filled : CardVariant.outlined,
       clip: Clip.hardEdge,
     );
+  }
+
+  Future<void> showDetailsSheet(BuildContext context) async {
+    await context.showSheet((ctx) => detailsBuilder(ctx, buildDetailsActions));
   }
 
   List<MenuAction> buildMenuActions(
