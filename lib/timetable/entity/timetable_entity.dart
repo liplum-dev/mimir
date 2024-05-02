@@ -26,10 +26,13 @@ class SitTimetableEntityState {
 
 /// The entity to display.
 class SitTimetableEntity
-    with SitTimetablePaletteResolver, EntityNodeBase<SitTimetableEntityState>
+    with SitTimetablePaletteResolver, EntityNodeBase<SitTimetableEntityState>, CourseCodeIndexer
     implements EntityNode<SitTimetableEntityState> {
   @override
   final EntityNode? parent = null;
+
+  @override
+  Iterable<SitCourse> get courses => type.courses.values;
 
   @override
   List<SitTimetableDay> get children => days;
@@ -102,22 +105,6 @@ class SitTimetableEntity
     }
     for (final MapEntry(key: day, value: lessons) in day2Lessons.entries) {
       day.state = SitTimetableDayState(lessons: lessons);
-    }
-  }
-
-  List<SitCourse> findAndCacheCoursesByCourseCode(String courseCode) {
-    final found = _courseCode2CoursesCache[courseCode];
-    if (found != null) {
-      return found;
-    } else {
-      final res = <SitCourse>[];
-      for (final course in type.courses.values) {
-        if (course.courseCode == courseCode) {
-          res.add(course);
-        }
-      }
-      _courseCode2CoursesCache[courseCode] = res;
-      return res;
     }
   }
 

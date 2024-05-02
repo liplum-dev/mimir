@@ -27,7 +27,7 @@ class TimetableCourseSheetPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final courses = timetable.findAndCacheCoursesByCourseCode(courseCode);
+    final courses = timetable.getCoursesByCourseCode(courseCode);
     return Scaffold(
       body: CustomScrollView(
         slivers: [

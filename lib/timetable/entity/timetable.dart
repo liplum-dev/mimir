@@ -608,3 +608,25 @@ extension _RangeX on ({int start, int end}) {
 ({int start, int end}) _unpackedInt8(int packed) {
   return (start: packed >> 4 & 0xF, end: packed & 0xF);
 }
+
+abstract mixin class CourseCodeIndexer {
+  Iterable<SitCourse> get courses;
+
+  final _courseCode2CoursesCache = <String, List<SitCourse>>{};
+
+  List<SitCourse> getCoursesByCourseCode(String courseCode) {
+    final found = _courseCode2CoursesCache[courseCode];
+    if (found != null) {
+      return found;
+    } else {
+      final res = <SitCourse>[];
+      for (final course in courses) {
+        if (course.courseCode == courseCode) {
+          res.add(course);
+        }
+      }
+      _courseCode2CoursesCache[courseCode] = res;
+      return res;
+    }
+  }
+}
