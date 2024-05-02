@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sit/design/adaptive/foundation.dart';
 import 'package:sit/design/dash_decoration.dart';
-import 'package:sit/l10n/time.dart';
 import 'package:sit/school/utils.dart';
 import 'package:sit/settings/settings.dart';
 import 'package:sit/timetable/palette.dart';
@@ -285,7 +284,7 @@ class TimetableOneWeek extends StatelessWidget {
     required TimetablePos todayPos,
   }) {
     final cells = <Widget>[];
-    final weekday = Weekday.fromIndex(day.index);
+    final weekday = day.weekday;
     cells.add(Container(
       width: cellSize.width,
       decoration: BoxDecoration(

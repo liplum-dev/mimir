@@ -287,8 +287,8 @@ String convertTimetable2ICal({
           final startTime = (merged ? lesson.startTime : part.startTime).toUtc();
           final endTime = (merged ? lesson.endTime : part.endTime).toUtc();
           final uid = merged
-              ? "${R.appId}.${course.courseCode}.${week.index}.${day.index}.${lesson.startIndex}-${lesson.endIndex}"
-              : "${R.appId}.${course.courseCode}.${week.index}.${day.index}.${part.index}";
+              ? "${R.appId}.${course.courseCode}.${week.index}.${day.weekday.index}.${lesson.startIndex}-${lesson.endIndex}"
+              : "${R.appId}.${course.courseCode}.${week.index}.${day.weekday.index}.${part.index}";
           // Use UTC
           final event = calendar.addEvent(
             uid: uid,

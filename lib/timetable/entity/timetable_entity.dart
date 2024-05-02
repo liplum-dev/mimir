@@ -76,41 +76,32 @@ class SitTimetableEntity
       ),
       depth: 1,
     );
+    _generateLessons();
   }
 
-  void generateLessons() {
+  void _generateLessons() {
+    final day2Lessons = <SitTimetableDay, List<SitTimetableLesson>>{};
     for (final course in state.type.courses.values) {
       if (course.hidden) continue;
-      final timeslots = course.timeslots;
       for (final weekIndex in course.weekIndices.getWeekIndices()) {
         assert(
           0 <= weekIndex && weekIndex < maxWeekLength,
           "Week index is more out of range [0,$maxWeekLength) but $weekIndex.",
         );
         if (0 <= weekIndex && weekIndex < maxWeekLength) {
-          final week = weeks[weekIndex];
-          final day = week.days[course.dayIndex];
-
-          day.state = SitTimetableDayState();
-
+          final day = getDay(weekIndex, Weekday.fromIndex(course.dayIndex));
           final parts = <SitTimetableLessonPart>[];
           final lesson = SitTimetableLesson(
             course: course,
             parts: parts,
           );
-          for (int slot = timeslots.start; slot <= timeslots.end; slot++) {
-            final part = SitTimetableLessonPart(
-              type: lesson,
-              index: slot,
-            );
-            parts.add(part);
-            day.add(
-              at: slot,
-              lesson: part,
-            );
-          }
+          final lessons = day2Lessons[day] ??= [];
+          lessons.add(lesson);
         }
       }
+    }
+    for (final MapEntry(key: day, value: lessons) in day2Lessons.entries) {
+      day.state = SitTimetableDayState(lessons: lessons);
     }
   }
 
@@ -438,7 +429,7 @@ class SitTimetableLessonPart
       return timeCache;
     } else {
       final thatDay = type.parent.date;
-      final classTime = course.calcBeginEndTimePointOfLesson(type.parent.parent.parent.type.campus, index);
+      final classTime = course.calcBeginEndTimePointOfLesson(type.parent.parent.campus, index);
       _dayCache = type.parent;
       final time = (start: thatDay.addTimePoint(classTime.begin), end: thatDay.addTimePoint(classTime.end));
       _timeCache = time;

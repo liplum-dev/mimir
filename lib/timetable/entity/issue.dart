@@ -77,7 +77,7 @@ extension SitTimetable4IssueX on SitTimetable {
               final issue = TimetableCourseOverlapIssue(
                 courseKeys: lessonSlot.lessons.map((l) => l.course.courseKey).toList(),
                 weekIndex: week.index,
-                weekday: Weekday.values[day.index],
+                weekday: day.weekday,
                 timeslots: (start: timeslot, end: timeslot),
               );
               if (overlaps.every((overlap) => !overlap.isSameOne(issue))) {
