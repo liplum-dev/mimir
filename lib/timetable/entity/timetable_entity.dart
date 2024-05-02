@@ -178,13 +178,13 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
   /// The Default number of lessons in one day is 11. But it can be extended.
   /// For example,
   /// A Timeslot could contain one or more lesson.
-  final List<SitTimetableLessonSlot> timeslots = [];
+  final List<SitTimetableLessonSlot> slots = [];
 
   Set<SitCourse> get associatedCourses =>
-      timeslots.map((slot) => slot.lessons).flattened.map((part) => part.course).toSet();
+      slots.map((slot) => slot.lessons).flattened.map((part) => part.course).toSet();
 
   @override
-  List<SitTimetableLessonSlot> get children => timeslots;
+  List<SitTimetableLessonSlot> get children => slots;
 
   DateTime get date => reflectWeekDayIndexToDate(
         startDate: parent.startDate,
@@ -199,25 +199,26 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 
   @override
   void build() {
-    timeslots.clear();
-    timeslots.addAll(List.generate(11, (index) => SitTimetableLessonSlot()..parent = this));
+    slots.clear();
+    slots.addAll(List.generate(11, (index) => SitTimetableLessonSlot()..parent = this));
     super.build();
   }
 
-  bool get isFree => timeslots.every((lessonSlot) => lessonSlot.lessons.isEmpty);
-  bool get hasAnyLesson =>  !isFree;
+  bool get isFree => slots.every((lessonSlot) => lessonSlot.lessons.isEmpty);
+
+  bool get hasAnyLesson => !isFree;
 
   void add({required SitTimetableLessonPart lesson, required int at}) {
-    assert(0 <= at && at < timeslots.length);
-    if (0 <= at && at < timeslots.length) {
-      final lessonSlot = timeslots[at];
+    assert(0 <= at && at < slots.length);
+    if (0 <= at && at < slots.length) {
+      final lessonSlot = slots[at];
       lessonSlot.lessons.add(lesson);
       lesson.type.parent = this;
     }
   }
 
   void clear() {
-    for (final lessonSlot in timeslots) {
+    for (final lessonSlot in slots) {
       lessonSlot.lessons.clear();
     }
   }
@@ -235,10 +236,10 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
   }
 
   void setLessonSlots(Iterable<SitTimetableLessonSlot> v) {
-    timeslots.clear();
-    timeslots.addAll(v);
+    slots.clear();
+    slots.addAll(v);
 
-    for (final lessonSlot in timeslots) {
+    for (final lessonSlot in slots) {
       lessonSlot.parent = this;
       for (final part in lessonSlot.lessons) {
         part.type.parent = this;
@@ -252,7 +253,7 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 
   /// At all lessons [layer]
   Iterable<SitTimetableLessonPart> browseLessonsAt({required int layer}) sync* {
-    for (final lessonSlot in timeslots) {
+    for (final lessonSlot in slots) {
       if (0 <= layer && layer < lessonSlot.lessons.length) {
         yield lessonSlot.lessons[layer];
       }
@@ -261,12 +262,16 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 
   @override
   String toString() {
-    return "${_formatDay(date)} [$weekIndex-${weekday.index}] $timeslots";
+    return "${_formatDay(date)} [$weekIndex-${weekday.index}] $slots";
   }
 }
 
 class SitTimetableLessonSlotState {
-  const SitTimetableLessonSlotState();
+  final List<SitTimetableLessonPart> lessons;
+
+  const SitTimetableLessonSlotState({
+    required this.lessons,
+  });
 }
 
 /// Lessons in the same timeslot.
@@ -278,7 +283,7 @@ class SitTimetableLessonSlot
   final List<SitTimetableLessonPart> lessons = [];
 
   @override
-  List<SitTimetableLessonPart> get children => lessons;
+  List<EntityNode> get children => const [];
 
   @override
   void build() {
@@ -350,14 +355,9 @@ class SitTimetableLessonPartState {
   });
 }
 
-class SitTimetableLessonPart
-    with EntityNodeBase<SitTimetableLessonPartState>
-    implements EntityNode<SitTimetableLessonPartState> {
-  @override
-  late final SitTimetableLessonSlot? parent;
-
-  @override
-  final List<EntityNode> children = const [];
+class SitTimetableLessonPart {
+  final int index;
+  final SitTimetableLesson type;
 
   /// The start index of this lesson in a [SitTimetableWeek]
 
@@ -386,11 +386,10 @@ class SitTimetableLessonPart
 
   SitCourse get course => type.course;
 
-  int get index => state.index;
-
-  SitTimetableLesson get type => state.type;
-
-  SitTimetableLessonPart();
+  SitTimetableLessonPart({
+    required this.index,
+    required this.type,
+  });
 
   @override
   String toString() => "[$index] $type";

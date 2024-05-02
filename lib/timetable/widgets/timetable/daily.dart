@@ -173,7 +173,7 @@ class _TimetableOneDayPageState extends State<TimetableOneDayPage> with Automati
         weekday: widget.weekday,
       ).scrolled().center();
     } else {
-      final slotCount = day.timeslots.length;
+      final slotCount = day.slots.length;
       final builder = _LessonRowBuilder(
         dividerBuilder: (dividerNumber) {
           return BreakDivider(title: dividerNumber == 1 ? i18n.lunchtime : i18n.dinnertime);
@@ -184,7 +184,7 @@ class _TimetableOneDayPageState extends State<TimetableOneDayPage> with Automati
           timeslot,
           buildLessonsInTimeslot(
             ctx,
-            day.timeslots[timeslot].lessons,
+            day.slots[timeslot].lessons,
             timeslot,
           ),
         );

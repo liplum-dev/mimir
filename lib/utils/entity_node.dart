@@ -90,7 +90,7 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
 
   @override
   bool containsChild(EntityNode node) {
-    return children.contains(node);
+        return children.contains(node);
   }
 
   @override
