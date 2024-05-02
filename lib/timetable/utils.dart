@@ -100,9 +100,13 @@ Campus _parseCampus(String campus) {
   }
 }
 
-SitTimetable parseUndergraduateTimetableFromCourseRaw(List<UndergraduateCourseRaw> all) {
+SitTimetable parseUndergraduateTimetableFromCourseRaw(
+  List<UndergraduateCourseRaw> all, {
+  required Campus defaultCampus,
+}) {
   final courseKey2Entity = <String, SitCourse>{};
   var counter = 0;
+  var campus = defaultCampus;
   for (final raw in all) {
     final courseKey = counter++;
     final weekIndices = _parseWeekText2RangedNumbers(
@@ -116,12 +120,12 @@ SitTimetable parseUndergraduateTimetableFromCourseRaw(List<UndergraduateCourseRa
     if (dayIndex == null || !(0 <= dayIndex && dayIndex < 7)) continue;
     final timeslots = rangeFromString(raw.timeslotsText, number2index: true);
     assert(timeslots.start <= timeslots.end, "${timeslots.start} > ${timeslots.end} actually. ${raw.courseName}");
+    campus = _parseCampus(raw.campus);
     final course = SitCourse(
       courseKey: courseKey,
       courseName: mapChinesePunctuations(raw.courseName).trim(),
       courseCode: raw.courseCode.trim(),
       classCode: raw.classCode.trim(),
-      campus: _parseCampus(raw.campus),
       place: reformatPlace(mapChinesePunctuations(raw.place)),
       weekIndices: weekIndices,
       timeslots: timeslots,
@@ -135,6 +139,7 @@ SitTimetable parseUndergraduateTimetableFromCourseRaw(List<UndergraduateCourseRa
     courses: courseKey2Entity,
     lastCourseKey: counter,
     name: "",
+    campus: campus,
     startDate: DateTime.utc(0),
     schoolYear: 0,
     semester: Semester.term1,
@@ -452,7 +457,7 @@ void completePostgraduateCourseRawsFromPostgraduateScoreRaws(
 
 SitTimetable parsePostgraduateTimetableFromCourseRaw(
   List<PostgraduateCourseRaw> all, {
-  required Campus campus,
+  required Campus defaultCampus,
 }) {
   final courseKey2Entity = <String, SitCourse>{};
   var counter = 0;
@@ -477,7 +482,6 @@ SitTimetable parsePostgraduateTimetableFromCourseRaw(
       courseName: mapChinesePunctuations(raw.courseName).trim(),
       courseCode: raw.courseCode.trim(),
       classCode: raw.classCode.trim(),
-      campus: campus,
       place: reformatPlace(mapChinesePunctuations(raw.place)),
       weekIndices: weekIndices,
       timeslots: timeslots,
@@ -491,6 +495,7 @@ SitTimetable parsePostgraduateTimetableFromCourseRaw(
     courses: courseKey2Entity,
     lastCourseKey: counter,
     name: "",
+    campus: defaultCampus,
     startDate: DateTime.utc(0),
     schoolYear: 0,
     semester: Semester.term1,

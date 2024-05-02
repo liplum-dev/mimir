@@ -245,6 +245,7 @@ school:
     classCode: Class code
     courseCode: Course code
     place: Place
+    campus: Campus
     displayable: Display in timetable
     semester: Semester
     schoolYear: School year

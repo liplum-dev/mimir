@@ -79,13 +79,13 @@ SitTimetable _get() {
     signature: "Liplum",
     startDate: DateTime.parse("2024-02-26"),
     lastModified: DateTime.now(),
-    courses: {
-      "0": const SitCourse(
+    campus: Campus.fengxian,
+    courses: const {
+      "0": SitCourse(
         courseKey: 0,
         courseName: "Java",
         courseCode: "001",
         classCode: "C1",
-        campus: Campus.fengxian,
         place: "Oracle & Sun",
         weekIndices: TimetableWeekIndices([
           TimetableWeekIndex(
@@ -99,12 +99,11 @@ SitTimetable _get() {
         teachers: ["John"],
         hidden: false,
       ),
-      "1": const SitCourse(
+      "1": SitCourse(
         courseKey: 1,
         courseName: "Kotlin",
         courseCode: "002",
         classCode: "C2",
-        campus: Campus.fengxian,
         place: "Jetbrains",
         weekIndices: TimetableWeekIndices([
           TimetableWeekIndex(
@@ -118,12 +117,11 @@ SitTimetable _get() {
         teachers: ["Joe"],
         hidden: false,
       ),
-      "2": const SitCourse(
+      "2": SitCourse(
         courseKey: 2,
         courseName: "Golang",
         courseCode: "003",
         classCode: "C3",
-        campus: Campus.fengxian,
         place: "Google",
         weekIndices: TimetableWeekIndices([
           TimetableWeekIndex(
@@ -137,12 +135,11 @@ SitTimetable _get() {
         teachers: ["Denny"],
         hidden: false,
       ),
-      "3": const SitCourse(
+      "3": SitCourse(
         courseKey: 3,
         courseName: "C#",
         courseCode: "004",
         classCode: "C4",
-        campus: Campus.fengxian,
         place: "Microsoft",
         weekIndices: TimetableWeekIndices([
           TimetableWeekIndex(
@@ -156,12 +153,11 @@ SitTimetable _get() {
         teachers: ["Paul"],
         hidden: false,
       ),
-      "4": const SitCourse(
+      "4": SitCourse(
         courseKey: 4,
         courseName: "Swift",
         courseCode: "005",
         classCode: "C5",
-        campus: Campus.fengxian,
         place: "Apple",
         weekIndices: TimetableWeekIndices([
           TimetableWeekIndex(
@@ -175,12 +171,11 @@ SitTimetable _get() {
         teachers: ["Nick"],
         hidden: false,
       ),
-      "5": const SitCourse(
+      "5": SitCourse(
         courseKey: 5,
         courseName: "Dart",
         courseCode: "006",
         classCode: "C6",
-        campus: Campus.fengxian,
         place: "Google",
         weekIndices: TimetableWeekIndices([
           TimetableWeekIndex(
@@ -194,12 +189,11 @@ SitTimetable _get() {
         teachers: ["Ben"],
         hidden: false,
       ),
-      "6": const SitCourse(
+      "6": SitCourse(
         courseKey: 6,
         courseName: "React",
         courseCode: "007",
         classCode: "C7",
-        campus: Campus.fengxian,
         place: "Meta",
         weekIndices: TimetableWeekIndices([
           TimetableWeekIndex(

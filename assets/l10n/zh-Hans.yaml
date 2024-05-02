@@ -245,6 +245,7 @@ school:
     classCode: 教学班
     courseCode: 课程代码
     place: 地点
+    campus: 校区
     displayable: 在课程表中显示
     semester: 学期
     schoolYear: 学年

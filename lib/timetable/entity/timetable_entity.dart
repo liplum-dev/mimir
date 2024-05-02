@@ -3,7 +3,7 @@ import 'dart:collection';
 
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/foundation.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:sit/entity/campus.dart';
 import 'package:sit/l10n/time.dart';
 import 'package:sit/school/entity/school.dart';
 import 'package:sit/school/entity/timetable.dart';
@@ -137,6 +137,8 @@ class SitTimetableEntity
   int get schoolYear => type.schoolYear;
 
   Semester get semester => type.semester;
+
+  Campus get campus => type.campus;
 
   String get signature => type.signature;
 
@@ -436,7 +438,7 @@ class SitTimetableLessonPart
       return timeCache;
     } else {
       final thatDay = type.parent.date;
-      final classTime = course.calcBeginEndTimePointOfLesson(index);
+      final classTime = course.calcBeginEndTimePointOfLesson(type.parent.parent.parent.type.campus, index);
       _dayCache = type.parent;
       final time = (start: thatDay.addTimePoint(classTime.begin), end: thatDay.addTimePoint(classTime.end));
       _timeCache = time;

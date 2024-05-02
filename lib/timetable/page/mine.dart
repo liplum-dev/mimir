@@ -457,6 +457,7 @@ class TimetableDetailsPage extends ConsumerWidget {
                 courseName: template.courseName,
                 courseCode: template.courseCode,
                 classCode: template.classCode,
+                campus: timetable.campus,
                 color: style.cellStyle.decorateColor(color, themeColor: ctx.colorScheme.primary),
               );
             },

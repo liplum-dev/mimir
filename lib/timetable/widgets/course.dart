@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:sit/design/widgets/card.dart';
 import 'package:sit/design/widgets/expansion_tile.dart';
+import 'package:sit/entity/campus.dart';
 import 'package:sit/l10n/time.dart';
 import 'package:sit/school/widgets/course.dart';
 import 'package:sit/timetable/entity/timetable.dart';
@@ -11,6 +12,7 @@ class TimetableCourseCard extends StatelessWidget {
   final String courseName;
   final String courseCode;
   final String classCode;
+  final Campus campus;
   final List<SitCourse> courses;
   final Color? color;
 
@@ -20,6 +22,7 @@ class TimetableCourseCard extends StatelessWidget {
     required this.courseCode,
     required this.classCode,
     required this.courses,
+    required this.campus,
     this.color,
   });
 
@@ -39,7 +42,7 @@ class TimetableCourseCard extends StatelessWidget {
       ].column(caa: CrossAxisAlignment.start),
       children: courses.map((course) {
         final weekNumbers = course.weekIndices.l10n();
-        final (:begin, :end) = course.calcBeginEndTimePoint();
+        final (:begin, :end) = course.calcBeginEndTimePoint(campus);
         return ListTile(
           isThreeLine: true,
           enabled: !course.hidden,

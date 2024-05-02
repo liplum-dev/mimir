@@ -18,6 +18,7 @@ abstract class _$SitTimetableCWProxy {
     int? lastCourseKey,
     String? name,
     DateTime? startDate,
+    Campus? campus,
     int? schoolYear,
     Semester? semester,
     DateTime? lastModified,
@@ -46,6 +47,7 @@ class _$SitTimetableCWProxyImpl implements _$SitTimetableCWProxy {
     Object? lastCourseKey = const $CopyWithPlaceholder(),
     Object? name = const $CopyWithPlaceholder(),
     Object? startDate = const $CopyWithPlaceholder(),
+    Object? campus = const $CopyWithPlaceholder(),
     Object? schoolYear = const $CopyWithPlaceholder(),
     Object? semester = const $CopyWithPlaceholder(),
     Object? lastModified = const $CopyWithPlaceholder(),
@@ -70,6 +72,10 @@ class _$SitTimetableCWProxyImpl implements _$SitTimetableCWProxy {
           ? _value.startDate
           // ignore: cast_nullable_to_non_nullable
           : startDate as DateTime,
+      campus: campus == const $CopyWithPlaceholder() || campus == null
+          ? _value.campus
+          // ignore: cast_nullable_to_non_nullable
+          : campus as Campus,
       schoolYear: schoolYear == const $CopyWithPlaceholder() || schoolYear == null
           ? _value.schoolYear
           // ignore: cast_nullable_to_non_nullable
@@ -116,7 +122,6 @@ abstract class _$SitCourseCWProxy {
     String? courseName,
     String? courseCode,
     String? classCode,
-    Campus? campus,
     String? place,
     TimetableWeekIndices? weekIndices,
     ({int end, int start})? timeslots,
@@ -146,7 +151,6 @@ class _$SitCourseCWProxyImpl implements _$SitCourseCWProxy {
     Object? courseName = const $CopyWithPlaceholder(),
     Object? courseCode = const $CopyWithPlaceholder(),
     Object? classCode = const $CopyWithPlaceholder(),
-    Object? campus = const $CopyWithPlaceholder(),
     Object? place = const $CopyWithPlaceholder(),
     Object? weekIndices = const $CopyWithPlaceholder(),
     Object? timeslots = const $CopyWithPlaceholder(),
@@ -172,10 +176,6 @@ class _$SitCourseCWProxyImpl implements _$SitCourseCWProxy {
           ? _value.classCode
           // ignore: cast_nullable_to_non_nullable
           : classCode as String,
-      campus: campus == const $CopyWithPlaceholder() || campus == null
-          ? _value.campus
-          // ignore: cast_nullable_to_non_nullable
-          : campus as Campus,
       place: place == const $CopyWithPlaceholder() || place == null
           ? _value.place
           // ignore: cast_nullable_to_non_nullable
@@ -275,6 +275,7 @@ SitTimetable _$SitTimetableFromJson(Map<String, dynamic> json) => SitTimetable(
       lastCourseKey: (json['lastCourseKey'] as num).toInt(),
       name: json['name'] as String,
       startDate: DateTime.parse(json['startDate'] as String),
+      campus: $enumDecodeNullable(_$CampusEnumMap, json['campus'], unknownValue: Campus.fengxian) ?? _defaultCampus(),
       schoolYear: (json['schoolYear'] as num).toInt(),
       semester: $enumDecode(_$SemesterEnumMap, json['semester']),
       lastModified: json['lastModified'] == null ? _kLastModified() : DateTime.parse(json['lastModified'] as String),
@@ -286,6 +287,7 @@ SitTimetable _$SitTimetableFromJson(Map<String, dynamic> json) => SitTimetable(
 Map<String, dynamic> _$SitTimetableToJson(SitTimetable instance) => <String, dynamic>{
       'name': instance.name,
       'startDate': instance.startDate.toIso8601String(),
+      'campus': _$CampusEnumMap[instance.campus]!,
       'schoolYear': instance.schoolYear,
       'semester': _$SemesterEnumMap[instance.semester]!,
       'lastCourseKey': instance.lastCourseKey,
@@ -295,6 +297,11 @@ Map<String, dynamic> _$SitTimetableToJson(SitTimetable instance) => <String, dyn
       'version': instance.version,
       'patches': instance.patches,
     };
+
+const _$CampusEnumMap = {
+  Campus.fengxian: 'fengxian',
+  Campus.xuhui: 'xuhui',
+};
 
 const _$SemesterEnumMap = {
   Semester.all: 'all',
@@ -307,7 +314,6 @@ SitCourse _$SitCourseFromJson(Map<String, dynamic> json) => SitCourse(
       courseName: json['courseName'] as String,
       courseCode: json['courseCode'] as String,
       classCode: json['classCode'] as String,
-      campus: $enumDecode(_$CampusEnumMap, json['campus'], unknownValue: Campus.fengxian),
       place: json['place'] as String,
       weekIndices: TimetableWeekIndices.fromJson(json['weekIndices'] as Map<String, dynamic>),
       timeslots: _$recordConvert(
@@ -328,7 +334,6 @@ Map<String, dynamic> _$SitCourseToJson(SitCourse instance) => <String, dynamic>{
       'courseName': instance.courseName,
       'courseCode': instance.courseCode,
       'classCode': instance.classCode,
-      'campus': _$CampusEnumMap[instance.campus]!,
       'place': instance.place,
       'weekIndices': instance.weekIndices,
       'timeslots': <String, dynamic>{
@@ -340,11 +345,6 @@ Map<String, dynamic> _$SitCourseToJson(SitCourse instance) => <String, dynamic>{
       'teachers': instance.teachers,
       'hidden': instance.hidden,
     };
-
-const _$CampusEnumMap = {
-  Campus.fengxian: 'fengxian',
-  Campus.xuhui: 'xuhui',
-};
 
 $Rec _$recordConvert<$Rec>(
   Object? value,

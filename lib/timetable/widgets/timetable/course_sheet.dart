@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:sit/design/widgets/card.dart';
+import 'package:sit/entity/campus.dart';
 import 'package:sit/l10n/time.dart';
 import 'package:text_scroll/text_scroll.dart';
 import '../../entity/timetable_entity.dart';
@@ -51,11 +52,21 @@ class TimetableCourseSheetPage extends StatelessWidget {
               itemBuilder: (ctx, i) {
                 final course = courses[i];
                 if (highlightedCourseKey == null) {
-                  return CourseDescTile(course).inFilledCard();
+                  return CourseDescTile(
+                    course,
+                    campus: timetable.campus,
+                  ).inFilledCard();
                 } else if (course.courseKey == highlightedCourseKey) {
-                  return CourseDescTile(course, selected: true).inFilledCard();
+                  return CourseDescTile(
+                    course,
+                    campus: timetable.campus,
+                    selected: true,
+                  ).inFilledCard();
                 } else {
-                  return CourseDescTile(course).inOutlinedCard();
+                  return CourseDescTile(
+                    course,
+                    campus: timetable.campus,
+                  ).inOutlinedCard();
                 }
               },
             ),
@@ -93,18 +104,20 @@ class TimetableCourseSheetPage extends StatelessWidget {
 
 class CourseDescTile extends StatelessWidget {
   final SitCourse course;
+  final Campus campus;
   final bool selected;
 
   const CourseDescTile(
     this.course, {
     super.key,
     this.selected = false,
+    required this.campus,
   });
 
   @override
   Widget build(BuildContext context) {
     final weekNumbers = course.weekIndices.l10n();
-    final (:begin, :end) = course.calcBeginEndTimePoint();
+    final (:begin, :end) = course.calcBeginEndTimePoint(campus);
     return ListTile(
       isThreeLine: true,
       selected: selected,

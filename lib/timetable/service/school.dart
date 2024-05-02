@@ -46,7 +46,10 @@ class TimetableService {
     final json = response.data;
     final List<dynamic> courseList = json['kbList'];
     final rawCourses = courseList.map((e) => UndergraduateCourseRaw.fromJson(e)).toList();
-    final timetableEntity = parseUndergraduateTimetableFromCourseRaw(rawCourses);
+    final timetableEntity = parseUndergraduateTimetableFromCourseRaw(
+      rawCourses,
+      defaultCampus: Settings.campus,
+    );
     return timetableEntity;
   }
 
@@ -67,7 +70,7 @@ class TimetableService {
     completePostgraduateCourseRawsFromPostgraduateScoreRaws(courseList, scoreList);
     final timetableEntity = parsePostgraduateTimetableFromCourseRaw(
       courseList,
-      campus: Settings.campus,
+      defaultCampus: Settings.campus,
     );
     return timetableEntity;
   }

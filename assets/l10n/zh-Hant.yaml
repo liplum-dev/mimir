@@ -246,6 +246,7 @@ school:
     classCode: 班级
     courseCode: 课程代码
     place: 地點
+    campus: 校區
     displayable: 在課程表中顯示
     teacher: 教師
     credit: 學分

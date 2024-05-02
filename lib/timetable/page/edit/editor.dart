@@ -9,6 +9,7 @@ import 'package:sit/design/adaptive/multiplatform.dart';
 import 'package:sit/design/adaptive/swipe.dart';
 import 'package:sit/design/widgets/card.dart';
 import 'package:sit/design/widgets/expansion_tile.dart';
+import 'package:sit/entity/campus.dart';
 import 'package:sit/l10n/extension.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:sit/l10n/time.dart';
@@ -42,6 +43,7 @@ class _TimetableEditorPageState extends State<TimetableEditorPage> {
   late final $startDate = ValueNotifier(widget.timetable.startDate);
   late final $signature = TextEditingController(text: widget.timetable.signature);
   late var courses = Map.of(widget.timetable.courses);
+  late var campus = widget.timetable.campus;
   late var lastCourseKey = widget.timetable.lastCourseKey;
   var navIndex = 0;
   var anyChanged = false;
@@ -131,6 +133,7 @@ class _TimetableEditorPageState extends State<TimetableEditorPage> {
       SliverList.list(children: [
         buildDescForm(),
         buildStartDate(),
+        buildCampus(),
         buildSignature(),
         if (issues.isNotEmpty) ...[
           ListTile(
@@ -147,6 +150,24 @@ class _TimetableEditorPageState extends State<TimetableEditorPage> {
         ],
       ]),
     ];
+  }
+
+  Widget buildCampus() {
+    return ListTile(
+      title: i18n.course.campus.text(),
+      subtitle: Campus.values
+          .map((c) => ChoiceChip(
+                label: c.l10nName().text(),
+                selected: c == campus,
+                onSelected: (value) {
+                  setState(() {
+                    campus = c;
+                  });
+                },
+              ))
+          .toList()
+          .wrap(spacing: 4),
+    );
   }
 
   List<Widget> buildAdvancedTab() {
@@ -169,6 +190,7 @@ class _TimetableEditorPageState extends State<TimetableEditorPage> {
             key: ValueKey(courseKey),
             courses: courses,
             template: template,
+            campus: campus,
             onCourseChanged: onCourseChanged,
             onCourseAdded: onCourseAdded,
             onCourseRemoved: onCourseRemoved,
@@ -277,6 +299,7 @@ class _TimetableEditorPageState extends State<TimetableEditorPage> {
       name: $name.text,
       signature: signature,
       startDate: $startDate.value,
+      campus: campus,
       courses: courses,
       lastCourseKey: lastCourseKey,
       lastModified: DateTime.now(),
@@ -342,6 +365,7 @@ Future<DateTime?> _pickTimetableStartDate(
 class TimetableEditableCourseCard extends StatelessWidget {
   final SitCourse template;
   final List<SitCourse> courses;
+  final Campus campus;
   final Color? color;
   final void Function(SitCourse old, SitCourse newValue)? onCourseChanged;
   final void Function(SitCourse)? onCourseAdded;
@@ -355,6 +379,7 @@ class TimetableEditableCourseCard extends StatelessWidget {
     this.onCourseChanged,
     this.onCourseAdded,
     this.onCourseRemoved,
+    required this.campus,
   });
 
   @override
@@ -412,7 +437,7 @@ class TimetableEditableCourseCard extends StatelessWidget {
       // sub-courses
       children: courses.mapIndexed((i, course) {
         final weekNumbers = course.weekIndices.l10n();
-        final (:begin, :end) = course.calcBeginEndTimePoint();
+        final (:begin, :end) = course.calcBeginEndTimePoint(campus);
         return WithSwipeAction(
           childKey: ValueKey(course.courseKey),
           right: onCourseRemoved == null
@@ -469,7 +494,6 @@ extension _SitCourseX on SitCourse {
       courseName: courseName,
       courseCode: courseCode,
       classCode: classCode,
-      campus: campus,
       place: "",
       weekIndices: const TimetableWeekIndices([]),
       timeslots: (start: 0, end: 0),

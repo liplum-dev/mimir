@@ -231,7 +231,7 @@ class _TimetableOneDayPageState extends State<TimetableOneDayPage> with Automati
       themeColor: context.colorScheme.primary,
       isLessonTaken: lesson.endTime.isBefore(DateTime.now()),
     );
-    final classTime = course.buildingTimetable[timeslot];
+    final classTime = course.buildingTimetableOf(timetable.campus)[timeslot];
     return [
       ClassTimeCard(
         color: color,
@@ -361,7 +361,7 @@ class LessonOverlapGroup extends StatelessWidget {
       final lesson = lessonsInSlot[lessonIndex];
       final course = lesson.course;
       final color = timetable.resolveColor(TimetableStyle.of(context).platte, course).byTheme(context.theme);
-      classTime = course.buildingTimetable[timeslot];
+      classTime = course.buildingTimetableOf(timetable.campus)[timeslot];
       final row = LessonCard(
         lesson: lesson,
         course: course,

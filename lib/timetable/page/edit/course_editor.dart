@@ -7,7 +7,6 @@ import 'package:sit/design/adaptive/multiplatform.dart';
 import 'package:sit/design/adaptive/swipe.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:sit/l10n/time.dart';
-import 'package:sit/settings/settings.dart';
 import 'package:sit/utils/save.dart';
 
 import '../../entity/timetable.dart';
@@ -115,7 +114,6 @@ class _SitCourseEditorPageState extends State<SitCourseEditorPage> {
   late final $courseName = TextEditingController(text: widget.course?.courseName);
   late final $courseCode = TextEditingController(text: widget.course?.courseCode);
   late final $classCode = TextEditingController(text: widget.course?.classCode);
-  late var campus = widget.course?.campus ?? Settings.campus;
   late final $place = TextEditingController(text: widget.course?.place);
   late var weekIndices = widget.course?.weekIndices ?? const TimetableWeekIndices([]);
   late var timeslots = widget.course?.timeslots ?? (start: 0, end: 0);
@@ -371,7 +369,6 @@ class _SitCourseEditorPageState extends State<SitCourseEditorPage> {
       courseName: $courseName.text,
       courseCode: $courseCode.text,
       classCode: $classCode.text,
-      campus: campus,
       place: $place.text,
       weekIndices: weekIndices,
       timeslots: timeslots,

@@ -15,13 +15,13 @@ class DemoTimetableService implements TimetableService {
   Future<SitTimetable> fetchUgTimetable(SemesterInfo info) async {
     var key = 0;
     return SitTimetable(
+      campus: Campus.fengxian,
       courses: {
         "$key": SitCourse(
           courseKey: key++,
           courseName: '小应生活开发实训',
           courseCode: 'dev',
           classCode: '001',
-          campus: Campus.fengxian,
           place: '小应生活实验室',
           weekIndices: const TimetableWeekIndices([
             TimetableWeekIndex.all((start: 0, end: 19)),
@@ -36,7 +36,6 @@ class DemoTimetableService implements TimetableService {
           courseName: '小应生活运维实训',
           courseCode: 'ops',
           classCode: '002',
-          campus: Campus.fengxian,
           place: '小应生活实验室',
           weekIndices: const TimetableWeekIndices([
             TimetableWeekIndex.all((start: 0, end: 19)),
@@ -51,7 +50,6 @@ class DemoTimetableService implements TimetableService {
           courseName: '小应生活设计实训',
           courseCode: 'design',
           classCode: '003',
-          campus: Campus.fengxian,
           place: '小应生活实验室',
           weekIndices: const TimetableWeekIndices([
             TimetableWeekIndex.all((start: 0, end: 19)),
@@ -66,7 +64,6 @@ class DemoTimetableService implements TimetableService {
           courseName: '小应生活部署实训',
           courseCode: 'deploy',
           classCode: '004',
-          campus: Campus.fengxian,
           place: '小应生活实验室',
           weekIndices: const TimetableWeekIndices([
             TimetableWeekIndex.all((start: 0, end: 19)),
@@ -81,7 +78,6 @@ class DemoTimetableService implements TimetableService {
           courseName: '小应生活管理实训',
           courseCode: 'management',
           classCode: '005',
-          campus: Campus.fengxian,
           place: '小应生活实验室',
           weekIndices: const TimetableWeekIndices([
             TimetableWeekIndex.all((start: 0, end: 19)),
@@ -96,7 +92,6 @@ class DemoTimetableService implements TimetableService {
           courseName: '小应生活会议',
           courseCode: 'meeting',
           classCode: '006',
-          campus: Campus.fengxian,
           place: '小应生活实验室',
           weekIndices: const TimetableWeekIndices([
             TimetableWeekIndex.all((start: 0, end: 19)),
@@ -111,7 +106,6 @@ class DemoTimetableService implements TimetableService {
           courseName: '小应生活国际化实训',
           courseCode: 'i18n',
           classCode: '007',
-          campus: Campus.fengxian,
           place: '小应生活实验室',
           weekIndices: const TimetableWeekIndices([
             TimetableWeekIndex.all((start: 0, end: 19)),

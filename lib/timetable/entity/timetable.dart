@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'package:sit/entity/campus.dart';
 import 'package:sit/school/entity/school.dart';
 import 'package:sit/school/entity/timetable.dart';
+import 'package:sit/settings/settings.dart';
 import 'package:sit/utils/byte_io/byte_io.dart';
 import 'package:statistics/statistics.dart';
 
@@ -24,6 +25,10 @@ List<TimetablePatchEntry> _patchesFromJson(List? list) {
       const <TimetablePatchEntry>[];
 }
 
+Campus _defaultCampus() {
+  return Settings.campus;
+}
+
 @JsonSerializable()
 @CopyWith(skipFields: true)
 @immutable
@@ -32,6 +37,8 @@ class SitTimetable {
   final String name;
   @JsonKey()
   final DateTime startDate;
+  @JsonKey(unknownEnumValue: Campus.fengxian, defaultValue: _defaultCampus)
+  final Campus campus;
   @JsonKey()
   final int schoolYear;
   @JsonKey()
@@ -60,6 +67,7 @@ class SitTimetable {
     required this.lastCourseKey,
     required this.name,
     required this.startDate,
+    required this.campus,
     required this.schoolYear,
     required this.semester,
     required this.lastModified,
@@ -91,6 +99,7 @@ class SitTimetable {
     return "SitTimetable("
         'name:"$name",'
         'signature:"$signature",'
+        "campus:$campus,"
         'startDate:DateTime.parse("$startDate"),'
         'lastModified:DateTime.now(),'
         "courses:${courses.map((key, value) => MapEntry('"$key"', value.toDartCode()))},"
@@ -108,6 +117,7 @@ class SitTimetable {
         runtimeType == other.runtimeType &&
         lastCourseKey == other.lastCourseKey &&
         version == other.version &&
+        campus == other.campus &&
         schoolYear == other.schoolYear &&
         semester == other.semester &&
         name == other.name &&
@@ -123,6 +133,7 @@ class SitTimetable {
         name,
         signature,
         lastCourseKey,
+        campus,
         schoolYear,
         semester,
         startDate,
@@ -140,6 +151,7 @@ class SitTimetable {
     writer.uint8(version);
     writer.strUtf8(name, ByteLength.bit8);
     writer.strUtf8(signature, ByteLength.bit8);
+    writer.uint8(campus.index);
     writer.uint8(schoolYear);
     writer.uint8(semester.index);
     writer.uint8(lastCourseKey);
@@ -160,6 +172,7 @@ class SitTimetable {
     return SitTimetable(
       name: reader.strUtf8(ByteLength.bit8),
       signature: reader.strUtf8(ByteLength.bit8),
+      campus: Campus.values[reader.uint8()],
       schoolYear: reader.uint8(),
       semester: Semester.values[reader.uint8()],
       lastCourseKey: reader.uint8(),
@@ -199,8 +212,7 @@ class SitCourse {
   final String courseCode;
   @JsonKey()
   final String classCode;
-  @JsonKey(unknownEnumValue: Campus.fengxian)
-  final Campus campus;
+
   @JsonKey()
   final String place;
 
@@ -229,7 +241,6 @@ class SitCourse {
     required this.courseName,
     required this.courseCode,
     required this.classCode,
-    required this.campus,
     required this.place,
     required this.weekIndices,
     required this.timeslots,
@@ -252,7 +263,6 @@ class SitCourse {
         'courseName:"$courseName",'
         'courseCode:"$courseCode",'
         'classCode:"$classCode",'
-        "campus:$campus,"
         'place:"$place",'
         "weekIndices:${weekIndices.toDartCode()},"
         "timeslots:$timeslots,"
@@ -270,7 +280,6 @@ class SitCourse {
         courseKey == other.courseKey &&
         courseName == other.courseName &&
         courseCode == other.courseCode &&
-        campus == other.campus &&
         place == other.place &&
         weekIndices == other.weekIndices &&
         timeslots == other.timeslots &&
@@ -285,7 +294,6 @@ class SitCourse {
         courseKey,
         courseName,
         courseCode,
-        campus,
         place,
         weekIndices,
         timeslots,
@@ -301,7 +309,6 @@ class SitCourse {
     writer.strUtf8(courseCode, ByteLength.bit8);
     writer.strUtf8(classCode, ByteLength.bit8);
     writer.strUtf8(place, ByteLength.bit8);
-    writer.uint8(campus.index);
     weekIndices.serialize(writer);
     writer.uint8(timeslots.packedInt8());
     writer.uint8((courseCredit * 10).toInt());
@@ -320,7 +327,6 @@ class SitCourse {
       courseCode: reader.strUtf8(ByteLength.bit8),
       classCode: reader.strUtf8(ByteLength.bit8),
       place: reader.strUtf8(ByteLength.bit8),
-      campus: Campus.values[reader.uint8()],
       weekIndices: TimetableWeekIndices.deserialize(reader),
       timeslots: _unpackedInt8(reader.uint8()),
       courseCredit: reader.uint8() * 0.1,
@@ -333,20 +339,20 @@ class SitCourse {
   }
 }
 
-extension SitCourseEx on SitCourse {
-  List<ClassTime> get buildingTimetable => getTeachingBuildingTimetable(campus, place);
+extension SitCourseX on SitCourse {
+  List<ClassTime> buildingTimetableOf(Campus campus) => getTeachingBuildingTimetable(campus, place);
 
   /// Based on [SitCourse.timeslots], compose a full-length class time.
   /// Starts with the first part starts.
   /// Ends with the last part ends.
-  ClassTime calcBeginEndTimePoint() {
-    final timetable = buildingTimetable;
+  ClassTime calcBeginEndTimePoint(Campus campus) {
+    final timetable = buildingTimetableOf(campus);
     final (:start, :end) = timeslots;
     return (begin: timetable[start].begin, end: timetable[end].end);
   }
 
-  List<ClassTime> calcBeginEndTimePointForEachLesson() {
-    final timetable = buildingTimetable;
+  List<ClassTime> calcBeginEndTimePointForEachLesson(Campus campus) {
+    final timetable = buildingTimetableOf(campus);
     final (:start, :end) = timeslots;
     final result = <ClassTime>[];
     for (var timeslot = start; timeslot <= end; timeslot++) {
@@ -355,8 +361,8 @@ extension SitCourseEx on SitCourse {
     return result;
   }
 
-  ClassTime calcBeginEndTimePointOfLesson(int timeslot) {
-    final timetable = buildingTimetable;
+  ClassTime calcBeginEndTimePointOfLesson(Campus campus, int timeslot) {
+    final timetable = buildingTimetableOf(campus);
     return timetable[timeslot];
   }
 }
