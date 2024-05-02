@@ -17,19 +17,19 @@ import 'timetable.dart';
 part "timetable_entity.g.dart";
 
 class TimetableNodeEvent<Data> {
-  final TimetableNode sender;
+  final TimetableNode source;
   final Data data;
 
   /// the event was handled and consumed.
   var consumed = false;
 
   TimetableNodeEvent({
-    required this.sender,
+    required this.source,
     required this.data,
   });
 }
 
-abstract class TimetableNode {
+abstract interface class TimetableNode {
   const TimetableNode();
 
   TimetableNode? get parent;
@@ -43,10 +43,10 @@ abstract class TimetableNode {
   FutureOr<void> onHandleEvent(TimetableNodeEvent<dynamic> event);
 }
 
-mixin TimetableNodeBase on TimetableNode {
+abstract mixin class TimetableNodeBase implements TimetableNode {
   @override
   FutureOr<void> travelEvent<Data>(Data data) async {
-    final event = TimetableNodeEvent(sender: this, data: data);
+    final event = TimetableNodeEvent(source: this, data: data);
     final queue = Queue<TimetableNode>();
     queue.addAll(children);
 
@@ -59,7 +59,7 @@ mixin TimetableNodeBase on TimetableNode {
 
   @override
   FutureOr<void> bubbleEvent<Data>(Data data) async {
-    final event = TimetableNodeEvent(sender: this, data: data);
+    final event = TimetableNodeEvent(source: this, data: data);
     var cur = parent;
     while (cur != null) {
       await cur.onHandleEvent(event);
@@ -69,7 +69,13 @@ mixin TimetableNodeBase on TimetableNode {
 }
 
 /// The entity to display.
-class SitTimetableEntity with SitTimetablePaletteResolver {
+class SitTimetableEntity with SitTimetablePaletteResolver, TimetableNodeBase implements TimetableNode {
+  @override
+  final TimetableNode? parent = null;
+
+  @override
+  List<SitTimetableWeek> get children => weeks;
+
   @override
   final SitTimetable type;
 
@@ -142,10 +148,18 @@ class SitTimetableEntity with SitTimetablePaletteResolver {
     final dayIndex = diff.inDays % 7;
     return week.days[dayIndex];
   }
+
+  @override
+  FutureOr<void> onHandleEvent(TimetableNodeEvent<dynamic> event) {}
 }
 
-class SitTimetableWeek {
+class SitTimetableWeek with TimetableNodeBase implements TimetableNode {
+  @override
   late final SitTimetableEntity parent;
+
+  @override
+  List<SitTimetableDay> get children => days;
+
   final int index;
 
   /// The 7 days in a week
@@ -175,58 +189,31 @@ class SitTimetableWeek {
   SitTimetableDay operator [](Weekday weekday) => days[weekday.index];
 
   operator []=(Weekday weekday, SitTimetableDay day) => days[weekday.index] = day;
-}
-
-/// Lessons in the same timeslot.
-@CopyWith(skipFields: true)
-class SitTimetableLessonSlot {
-  late final SitTimetableDay parent;
-  final List<SitTimetableLessonPart> lessons;
-
-  SitTimetableLessonSlot({required this.lessons});
-
-  SitTimetableLessonPart? lessonAt(int index) {
-    return lessons.elementAtOrNull(index);
-  }
 
   @override
-  String toString() {
-    return "${_formatDay(parent.date)} $lessons".toString();
+  FutureOr<void> onHandleEvent(TimetableNodeEvent<dynamic> event) {
+    throw UnimplementedError();
   }
 }
 
-String _formatDay(DateTime date) {
-  return "${date.year}/${date.month}/${date.day}";
-}
-
-String _formatTime(DateTime date) {
-  return "${date.year}/${date.month}/${date.day} ${date.hour}:${date.minute}";
-}
-
-class SitTimetableDay {
+class SitTimetableDay with TimetableNodeBase implements TimetableNode {
+  @override
   late final SitTimetableWeek parent;
   final int index;
 
   /// The Default number of lessons in one day is 11. But it can be extended.
   /// For example,
   /// A Timeslot could contain one or more lesson.
-  final List<SitTimetableLessonSlot> _timeslot2LessonSlot;
+  final List<SitTimetableLessonSlot> timeslot2LessonSlot;
 
-  List<SitTimetableLessonSlot> get timeslot2LessonSlot => UnmodifiableListView(_timeslot2LessonSlot);
+  late final Set<SitCourse> associatedCourses =
+      timeslot2LessonSlot.map((slot) => slot.lessons).flattened.map((part) => part.course).toSet();
 
-  late final Set<SitCourse> _associatedCourses =
-      _timeslot2LessonSlot.map((slot) => slot.lessons).flattened.map((part) => part.course).toSet();
+  @override
+  List<SitTimetableLessonSlot> get children => timeslot2LessonSlot;
 
-  Set<SitCourse> get associatedCourses => UnmodifiableSetView(_associatedCourses);
-
-  bool _frozen = false;
-
-  bool get frozen => _frozen;
-
-  void freeze() {
-    _frozen = true;
-    throw UnimplementedError();
-  }
+  @override
+  FutureOr<void> onHandleEvent(TimetableNodeEvent<dynamic> event) {}
 
   DateTime get date => reflectWeekDayIndexToDate(
         startDate: parent.parent.startDate,
@@ -235,38 +222,34 @@ class SitTimetableDay {
       );
 
   SitTimetableDay({
-    required int index,
-    required List<SitTimetableLessonSlot> timeslot2LessonSlot,
-  }) : this._internal(index, List.of(timeslot2LessonSlot));
-
-  SitTimetableDay._internal(this.index, this._timeslot2LessonSlot) {
+    required this.index,
+    required this.timeslot2LessonSlot,
+  }) {
     for (final lessonSlot in timeslot2LessonSlot) {
       lessonSlot.parent = this;
     }
   }
 
   factory SitTimetableDay.$11slots(int dayIndex) {
-    return SitTimetableDay._internal(
-      dayIndex,
-      List.generate(11, (index) => SitTimetableLessonSlot(lessons: <SitTimetableLessonPart>[])),
+    return SitTimetableDay(
+      index: dayIndex,
+      timeslot2LessonSlot: List.generate(11, (index) => SitTimetableLessonSlot(lessons: <SitTimetableLessonPart>[])),
     );
   }
 
-  bool get isFree => _timeslot2LessonSlot.every((lessonSlot) => lessonSlot.lessons.isEmpty);
+  bool get isFree => timeslot2LessonSlot.every((lessonSlot) => lessonSlot.lessons.isEmpty);
 
   void add({required SitTimetableLessonPart lesson, required int at}) {
-    if (frozen) throw throw UnsupportedError("Cannot modify a frozen $SitTimetableDay.");
-    assert(0 <= at && at < _timeslot2LessonSlot.length);
-    if (0 <= at && at < _timeslot2LessonSlot.length) {
-      final lessonSlot = _timeslot2LessonSlot[at];
+    assert(0 <= at && at < timeslot2LessonSlot.length);
+    if (0 <= at && at < timeslot2LessonSlot.length) {
+      final lessonSlot = timeslot2LessonSlot[at];
       lessonSlot.lessons.add(lesson);
       lesson.type.parent = this;
     }
   }
 
   void clear() {
-    if (frozen) throw throw UnsupportedError("Cannot modify a frozen $SitTimetableDay.");
-    for (final lessonSlot in _timeslot2LessonSlot) {
+    for (final lessonSlot in timeslot2LessonSlot) {
       lessonSlot.lessons.clear();
     }
   }
@@ -284,10 +267,10 @@ class SitTimetableDay {
   }
 
   void setLessonSlots(Iterable<SitTimetableLessonSlot> v) {
-    _timeslot2LessonSlot.clear();
-    _timeslot2LessonSlot.addAll(v);
+    timeslot2LessonSlot.clear();
+    timeslot2LessonSlot.addAll(v);
 
-    for (final lessonSlot in _timeslot2LessonSlot) {
+    for (final lessonSlot in timeslot2LessonSlot) {
       lessonSlot.parent = this;
       for (final part in lessonSlot.lessons) {
         part.type.parent = this;
@@ -298,7 +281,7 @@ class SitTimetableDay {
   List<SitTimetableLessonSlot> cloneLessonSlots() {
     final old2newLesson = <SitTimetableLesson, SitTimetableLesson>{};
     final timeslots = List.of(
-      _timeslot2LessonSlot.map(
+      timeslot2LessonSlot.map(
         (lessonSlot) {
           return SitTimetableLessonSlot(
             lessons: List.of(
@@ -333,7 +316,7 @@ class SitTimetableDay {
 
   /// At all lessons [layer]
   Iterable<SitTimetableLessonPart> browseLessonsAt({required int layer}) sync* {
-    for (final lessonSlot in _timeslot2LessonSlot) {
+    for (final lessonSlot in timeslot2LessonSlot) {
       if (0 <= layer && layer < lessonSlot.lessons.length) {
         yield lessonSlot.lessons[layer];
       }
@@ -341,7 +324,7 @@ class SitTimetableDay {
   }
 
   bool hasAnyLesson() {
-    for (final lessonSlot in _timeslot2LessonSlot) {
+    for (final lessonSlot in timeslot2LessonSlot) {
       if (lessonSlot.lessons.isNotEmpty) {
         assert(associatedCourses.isNotEmpty);
         return true;
@@ -354,9 +337,44 @@ class SitTimetableDay {
   String toString() => {
         "date": _formatDay(date),
         "index": index,
-        "timeslot2LessonSlot": _timeslot2LessonSlot,
+        "timeslot2LessonSlot": timeslot2LessonSlot,
         "associatedCourses": associatedCourses,
       }.toString();
+}
+
+/// Lessons in the same timeslot.
+@CopyWith(skipFields: true)
+class SitTimetableLessonSlot with TimetableNodeBase implements TimetableNode {
+  @override
+  late final SitTimetableDay parent;
+  final List<SitTimetableLessonPart> lessons;
+
+  SitTimetableLessonSlot({required this.lessons});
+
+  @override
+  List<SitTimetableLessonPart> get children => lessons;
+
+  @override
+  FutureOr<void> onHandleEvent(TimetableNodeEvent event) {
+  }
+
+  SitTimetableLessonPart? lessonAt(int index) {
+    return lessons.elementAtOrNull(index);
+  }
+
+  @override
+  String toString() {
+    return "${_formatDay(parent.date)} $lessons".toString();
+  }
+
+}
+
+String _formatDay(DateTime date) {
+  return "${date.year}/${date.month}/${date.day}";
+}
+
+String _formatTime(DateTime date) {
+  return "${date.year}/${date.month}/${date.day} ${date.hour}:${date.minute}";
 }
 
 @CopyWith(skipFields: true)
@@ -396,8 +414,18 @@ class SitTimetableLesson {
 }
 
 @CopyWith(skipFields: true)
-class SitTimetableLessonPart {
+class SitTimetableLessonPart with TimetableNodeBase implements TimetableNode {
+  @override
+  late final SitTimetableLessonSlot? parent;
+
   final SitTimetableLesson type;
+
+  @override
+  final List<TimetableNode> children = const [];
+
+  @override
+  FutureOr<void> onHandleEvent(TimetableNodeEvent<dynamic> event) {
+  }
 
   /// The start index of this lesson in a [SitTimetableWeek]
   final int index;
@@ -434,6 +462,7 @@ class SitTimetableLessonPart {
 
   @override
   String toString() => "[$index] $type";
+
 }
 
 extension SitTimetable4EntityX on SitTimetable {
