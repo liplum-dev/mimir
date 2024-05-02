@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:collection';
+
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sit/l10n/time.dart';
@@ -12,6 +15,58 @@ import 'platte.dart';
 import 'timetable.dart';
 
 part "timetable_entity.g.dart";
+
+class TimetableNodeEvent<Data> {
+  final TimetableNode sender;
+  final Data data;
+
+  /// the event was handled and consumed.
+  var consumed = false;
+
+  TimetableNodeEvent({
+    required this.sender,
+    required this.data,
+  });
+}
+
+abstract class TimetableNode {
+  const TimetableNode();
+
+  TimetableNode? get parent;
+
+  List<TimetableNode> get children;
+
+  FutureOr<void> travelEvent<Data>(Data data);
+
+  FutureOr<void> bubbleEvent<Data>(Data data);
+
+  FutureOr<void> onHandleEvent(TimetableNodeEvent<dynamic> event);
+}
+
+mixin TimetableNodeBase on TimetableNode {
+  @override
+  FutureOr<void> travelEvent<Data>(Data data) async {
+    final event = TimetableNodeEvent(sender: this, data: data);
+    final queue = Queue<TimetableNode>();
+    queue.addAll(children);
+
+    while (queue.isNotEmpty) {
+      final child = queue.removeFirst();
+      await child.onHandleEvent(event);
+      queue.addAll(child.children);
+    }
+  }
+
+  @override
+  FutureOr<void> bubbleEvent<Data>(Data data) async {
+    final event = TimetableNodeEvent(sender: this, data: data);
+    var cur = parent;
+    while (cur != null) {
+      await cur.onHandleEvent(event);
+      cur = cur.parent;
+    }
+  }
+}
 
 /// The entity to display.
 class SitTimetableEntity with SitTimetablePaletteResolver {
