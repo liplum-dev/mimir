@@ -68,14 +68,14 @@ class SitTimetableEntity
 
   @override
   void onStateChange(SitTimetableEntityState? oldState, SitTimetableEntityState newState) {
-    travelEvent(
-      EntityNodeStateChangeEvent(
-        source: this,
-        oldState: oldState,
-        newState: newState,
-      ),
-      depth: 1,
-    );
+    // travelEvent(
+    //   EntityNodeStateChangeEvent(
+    //     source: this,
+    //     oldState: oldState,
+    //     newState: newState,
+    //   ),
+    //   depth: 1,
+    // );
     _generateLessons();
   }
 

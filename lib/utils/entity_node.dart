@@ -96,9 +96,10 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
   @override
   int get depth {
     int d = 0;
-    final cur = parent;
+    var cur = parent;
     while (cur != null) {
       d++;
+      cur = cur.parent;
     }
     return d;
   }
