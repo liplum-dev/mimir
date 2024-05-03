@@ -317,14 +317,8 @@ class SitTimetableLessonSlot
 
   late ({DateTime start, DateTime end}) _time = () {
     final thatDay = parent.date;
-    final classTime = course.calcBeginEndTimePointOfLesson(type.parent.parent.campus, index);
-
-    _dayCache = type.parent;
-
+    final classTime = calcBeginEndTimePointOfLesson(index, parent.parent.campus);
     final time = (start: thatDay.addTimePoint(classTime.begin), end: thatDay.addTimePoint(classTime.end));
-
-    _timeCache = time;
-
     return time;
   }();
 

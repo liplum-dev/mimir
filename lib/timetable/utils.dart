@@ -273,7 +273,7 @@ String convertTimetable2ICal({
   final merged = config.isLessonMerged;
   final added = <SitTimetableLesson>{};
   for (final day in timetable.days) {
-    for (final lessonSlot in day.timeslot2LessonSlot) {
+    for (final lessonSlot in day.slots) {
       for (final part in lessonSlot.lessons) {
         final lesson = part.type;
         if (merged && added.contains(lesson)) {

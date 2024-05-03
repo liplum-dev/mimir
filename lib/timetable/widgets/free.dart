@@ -54,7 +54,7 @@ class FreeDayTip extends StatelessWidget {
     final dayIndex = weekIndex * 7 + weekday.index;
     for (int j = dayIndex; j < timetable.days.length; j++) {
       final day = timetable.days[j];
-      if (day.hasAnyLesson()) {
+      if (day.hasAnyLesson) {
         eventBus.fire(JumpToPosEvent(TimetablePos.fromDayIndex(dayIndex)));
         return;
       }
@@ -62,7 +62,7 @@ class FreeDayTip extends StatelessWidget {
     // Now there's no class forward, so let's search backward.
     for (int i = dayIndex; 0 <= i; i--) {
       final day = timetable.days[i];
-      if (day.hasAnyLesson()) {
+      if (day.hasAnyLesson) {
         eventBus.fire(JumpToPosEvent(TimetablePos.fromDayIndex(dayIndex)));
         return;
       }
