@@ -60,21 +60,6 @@ abstract interface class EntityNode<State> {
   FutureOr<void> onBubbleEvent(EntityNodeEvent event);
 
   FutureOr<void> onTravelEvent(EntityNodeEvent event);
-
-  static void buildTree(EntityNode root) {
-    assert(root.isRoot);
-    root.build();
-    final queue = Queue<EntityNode>();
-    queue.addAll(root.children);
-
-    while (queue.isNotEmpty) {
-      final child = queue.removeFirst();
-      if (!child.hasBuilt) {
-        child.build();
-      }
-      queue.addAll(child.children);
-    }
-  }
 }
 
 extension EntityNodeX on EntityNode {
@@ -87,11 +72,17 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
   @override
   late bool hasBuilt = false;
   static const empty = Object();
-  dynamic _state = empty;
+  late dynamic _state = createDefaultState() ?? empty;
 
   @override
   bool containsChild(EntityNode node) {
-        return children.contains(node);
+    return children.contains(node);
+  }
+
+  void buildChildren() {
+    for (final child in children) {
+      child.build();
+    }
   }
 
   @override
@@ -115,6 +106,10 @@ abstract mixin class EntityNodeBase<TState> implements EntityNode<TState> {
     final old = stateInitialized ? _state as TState : null;
     _state = state;
     onStateChange(old, state);
+  }
+
+  TState? createDefaultState() {
+    return null;
   }
 
   void onStateChange(TState? oldState, TState newState) {

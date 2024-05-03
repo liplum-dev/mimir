@@ -61,6 +61,7 @@ class SitTimetableEntity
 
   @override
   void build() {
+    super.build();
     days.clear();
     days.addAll(List.generate(
       maxWeekLength * 7,
@@ -69,7 +70,7 @@ class SitTimetableEntity
         weekday: Weekday.fromIndex(index % 7),
       )..parent = this,
     ));
-    super.build();
+    buildChildren();
   }
 
   @override
@@ -203,10 +204,14 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 
   @override
   void build() {
-    slots.clear();
-    slots.addAll(List.generate(11, (index) => SitTimetableLessonSlot()..parent = this));
     super.build();
+    slots.clear();
+    slots.addAll(List.generate(11, (index) => SitTimetableLessonSlot(index: index)..parent = this));
+    buildChildren();
   }
+
+  @override
+  SitTimetableDayState? createDefaultState() => const SitTimetableDayState(lessons: []);
 
   @override
   void onStateChange(SitTimetableDayState? oldState, SitTimetableDayState newState) {
@@ -232,7 +237,7 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
     }
     for (final MapEntry(key: slot, value: parts) in slot2parts.asMap().entries) {
       slot.state = SitTimetableLessonSlotState(
-        parts: listMultimapFromEntries(parts, key: (part) => part.type, value: (part) => part),
+        parts: listMultimapFromEntries(parts, key: (part) => part.type, value: (part) => part).asMap(),
       );
     }
   }
@@ -300,7 +305,7 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 }
 
 class SitTimetableLessonSlotState {
-  final ListMultimap<SitTimetableLesson, SitTimetableLessonPart> parts;
+  final Map<SitTimetableLesson, List<SitTimetableLessonPart>> parts;
 
   const SitTimetableLessonSlotState({
     required this.parts,
@@ -313,15 +318,44 @@ class SitTimetableLessonSlot
     implements EntityNode<SitTimetableLessonSlotState> {
   @override
   late final SitTimetableDay parent;
-  final List<SitTimetableLessonPart> lessons = [];
+  final int index;
+
+  List<SitTimetableLessonPart> get lessons => state.parts.values.flattened.toList();
 
   @override
   List<EntityNode> get children => const [];
 
+  late ({DateTime start, DateTime end}) _time = () {
+    final thatDay = parent.date;
+    final classTime = course.calcBeginEndTimePointOfLesson(type.parent.parent.campus, index);
+
+    _dayCache = type.parent;
+
+    final time = (start: thatDay.addTimePoint(classTime.begin), end: thatDay.addTimePoint(classTime.end));
+
+    _timeCache = time;
+
+    return time;
+  }();
+
+  DateTime get startTime => _time.start;
+
+  DateTime get endTime => _time.end;
+
+  SitTimetableLessonSlot({required this.index});
+
   @override
   void build() {
-    lessons.clear();
     super.build();
+    buildChildren();
+  }
+
+  @override
+  SitTimetableLessonSlotState? createDefaultState() => const SitTimetableLessonSlotState(parts: {});
+
+  @override
+  void onStateChange(SitTimetableLessonSlotState? oldState, SitTimetableLessonSlotState newState) {
+    super.onStateChange(oldState, newState);
   }
 
   @override
@@ -384,61 +418,25 @@ class SitTimetableLesson {
   }
 }
 
-@CopyWith(skipFields: true)
-class SitTimetableLessonPartState {
-  final int index;
-  final SitTimetableLesson type;
-
-  const SitTimetableLessonPartState({
-    required this.index,
-    required this.type,
-  });
-}
-
 class SitTimetableLessonPart {
-  final int index;
   final SitTimetableLesson type;
 
   /// The start index of this lesson in a [SitTimetableWeek]
 
-  late SitTimetableDay _dayCache = type.parent;
-
-  ({DateTime start, DateTime end})? _timeCache;
-
-  ({DateTime start, DateTime end}) get time {
-    final timeCache = _timeCache;
-
-    if (_dayCache == type.parent && timeCache != null) {
-      return timeCache;
-    } else {
-      final thatDay = type.parent.date;
-      final classTime = course.calcBeginEndTimePointOfLesson(type.parent.parent.campus, index);
-      _dayCache = type.parent;
-      final time = (start: thatDay.addTimePoint(classTime.begin), end: thatDay.addTimePoint(classTime.end));
-      _timeCache = time;
-      return time;
-    }
-  }
-
-  DateTime get startTime => time.start;
-
-  DateTime get endTime => time.end;
-
   SitCourse get course => type.course;
 
   SitTimetableLessonPart({
-    required this.index,
     required this.type,
   });
 
   @override
-  String toString() => "[$index] $type";
+  String toString() => "$type";
 }
 
 extension SitTimetable4EntityX on SitTimetable {
   SitTimetableEntity resolve() {
     final entity = SitTimetableEntity();
-    EntityNode.buildTree(entity);
+    entity.build();
     entity.state = SitTimetableEntityState(type: this);
     return entity;
     // final weeks = entity.weeks;
