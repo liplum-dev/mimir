@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rettulf/rettulf.dart';
+import 'package:sit/game/2048/widget/card.dart';
 
 class AppCard extends StatelessWidget {
   /// [SizedBox] by default.

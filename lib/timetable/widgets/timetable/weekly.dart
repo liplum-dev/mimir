@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sit/design/adaptive/foundation.dart';
 import 'package:sit/design/dash_decoration.dart';
+import 'package:sit/design/widgets/glassmorphic.dart';
+import 'package:sit/game/2048/widget/card.dart';
 import 'package:sit/school/utils.dart';
 import 'package:sit/settings/settings.dart';
 import 'package:sit/timetable/palette.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:glassmorphism/glassmorphism.dart';
 
 import '../../events.dart';
 import '../../entity/timetable.dart';
@@ -479,28 +480,7 @@ class CourseCell extends StatelessWidget {
       // textColor: color.resolveTextColorForReadability(),
     ).center();
 
-    return GlassmorphicContainer(
-      width: 350,
-      height: 350,
-      borderRadius: 20,
-      blur: 5,
-      alignment: Alignment.bottomCenter,
-      border: 0,
-      linearGradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [color, color],
-        stops: [1, 1],
-      ),
-      borderGradient: LinearGradient(
-        colors: [color, color],
-        stops: [1, 1],
-      ),
-      child: innerBuilder != null ? innerBuilder(context, info) : info,
-      margin: const EdgeInsets.all(0.5),
-    );
-    return Card.filled(
-      clipBehavior: Clip.hardEdge,
+    return StyledCard(
       color: color,
       margin: const EdgeInsets.all(0.5),
       child: innerBuilder != null ? innerBuilder(context, info) : info,
