@@ -45,7 +45,9 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <!-- Accepts URIs that begin with "life.mysit://” -->
+        <!-- Accepts URIs that begin with "sit-life://” -->
+        <data android:scheme="sit-life"/>
+        <!--   for backwards support     -->
         <data android:scheme="life.mysit"/>
       </intent-filter>
     </activity>

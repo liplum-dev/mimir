@@ -520,7 +520,7 @@ Future<void> onTimetablePaletteFromQrCode({
   required BuildContext context,
   required TimetablePalette palette,
 }) async {
-  final newPalette = await context.showSheet(
+  final newPalette = await context.showSheet<TimetablePalette>(
     (ctx) => TimetablePaletteEditorPage(palette: palette),
     dismissible: false,
     useRootNavigator: true,

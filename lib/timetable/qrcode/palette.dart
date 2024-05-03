@@ -7,12 +7,14 @@ import '../entity/platte.dart';
 import '../page/p13n/palette.dart';
 
 class TimetablePaletteDeepLink implements DeepLinkHandlerProtocol {
-  static const path = "timetable-palette";
+  static const host = "timetable";
+  static const path = "/palette";
 
   const TimetablePaletteDeepLink();
 
   Uri encode(TimetablePalette palette) => Uri(
       scheme: R.scheme,
+      host: host,
       path: path,
       query: encodeBytesForUrl(
         palette.encodeByteList(),
@@ -26,7 +28,9 @@ class TimetablePaletteDeepLink implements DeepLinkHandlerProtocol {
 
   @override
   bool match(Uri encoded) {
-    return encoded.path == path;
+    // for backwards support
+    if (encoded.host.isEmpty && encoded.path == "timetable-palette") return true;
+    return encoded.host == host && encoded.path == path;
   }
 
   @override

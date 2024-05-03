@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -30,6 +31,7 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
     facing: CameraFacing.back,
   );
   StreamSubscription<Object?>? _subscription;
+  bool isReturned = false;
 
   @override
   void initState() {
@@ -46,41 +48,6 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
 
     // Finally, start the scanner itself.
     unawaited(startCamera());
-  }
-
-  Future<void> startCamera() async {
-    try {
-      await controller.start();
-    } catch (error, stackTrace) {
-      debugPrintError(error, stackTrace);
-      if (error is MobileScannerException && error.errorCode == MobileScannerErrorCode.permissionDenied) {
-        if (!mounted) return;
-        await showPermissionDeniedDialog(context: context, permission: Permission.camera);
-      }
-    }
-  }
-
-  Future<void> _handleBarcode(BarcodeCapture capture) async {
-    final qrcode = capture.barcodes.firstOrNull;
-    if (qrcode != null) {
-      context.pop(qrcode.rawValue);
-      await HapticFeedback.heavyImpact();
-    }
-  }
-
-  Future<void> recognizeFromFile() async {
-    final ImagePicker picker = ImagePicker();
-    // Pick an image
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      final result = await controller.analyzeImage(image.path);
-      if (result != null) {
-        await _handleBarcode(result);
-      } else {
-        if (!mounted) return;
-        context.showSnackBar(content: i18n.barcodeNotRecognizedTip.text());
-      }
-    }
   }
 
   @override
@@ -100,6 +67,49 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
     super.dispose();
     // Finally, dispose of the controller.
     unawaited(controller.dispose());
+  }
+
+  Future<void> startCamera() async {
+    try {
+      await controller.start();
+    } catch (error, stackTrace) {
+      debugPrintError(error, stackTrace);
+      if (error is MobileScannerException && error.errorCode == MobileScannerErrorCode.permissionDenied) {
+        if (!mounted) return;
+        await showPermissionDeniedDialog(context: context, permission: Permission.camera);
+      }
+    }
+  }
+
+  Future<void> _handleBarcode(BarcodeCapture capture) async {
+    if (kDebugMode) {
+      print("Recognized: ${capture.barcodes.map((code) => code.rawValue)}");
+    }
+
+    /// prevent accidentally multiple pop.
+    if (!context.mounted || isReturned) return;
+
+    final qrcode = capture.barcodes.firstOrNull;
+    if (qrcode != null) {
+      isReturned = true;
+      context.pop(qrcode.rawValue);
+      await HapticFeedback.heavyImpact();
+    }
+  }
+
+  Future<void> recognizeFromFile() async {
+    final ImagePicker picker = ImagePicker();
+    // Pick an image
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final result = await controller.analyzeImage(image.path);
+      if (result != null) {
+        await _handleBarcode(result);
+      } else {
+        if (!mounted) return;
+        context.showSnackBar(content: i18n.barcodeNotRecognizedTip.text());
+      }
+    }
   }
 
   @override

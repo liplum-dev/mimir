@@ -7,19 +7,22 @@ import 'package:sit/timetable/entity/patch.dart';
 import '../page/patch/qrcode.dart';
 
 class TimetablePatchDeepLink implements DeepLinkHandlerProtocol {
-  static const path = "timetable-patch";
+  static const host = "timetable";
+  static const path = "/patch";
 
   const TimetablePatchDeepLink();
 
-  Uri encode(TimetablePatchEntry entry) =>
-      Uri(scheme: R.scheme, path: path, query: encodeBytesForUrl(TimetablePatchEntry.encodeByteList(entry)));
+  Uri encode(TimetablePatchEntry entry) => Uri(
+      scheme: R.scheme, host: host, path: path, query: encodeBytesForUrl(TimetablePatchEntry.encodeByteList(entry)));
 
   TimetablePatchEntry decode(Uri qrCodeData) =>
       (TimetablePatchEntry.decodeByteList(decodeBytesFromUrl(qrCodeData.query)));
 
   @override
   bool match(Uri encoded) {
-    return encoded.path == path;
+    // for backwards support
+    if (encoded.host.isEmpty && encoded.path == "timetable-patch") return true;
+    return encoded.host == host && encoded.path == path;
   }
 
   @override

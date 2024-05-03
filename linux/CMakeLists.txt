@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(runner LANGUAGES CXX)
 
-set(BINARY_NAME "sit_life")
+set(BINARY_NAME "sit-life")
 set(APPLICATION_ID "life.mysit.SITLife")
 
 cmake_policy(SET CMP0063 NEW)

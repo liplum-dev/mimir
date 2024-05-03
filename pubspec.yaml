@@ -3,7 +3,7 @@ description: "A multiplatform app for SIT students."
 
 # The build version numbers is incremented automatically.
 # DO NOT DIRECTLY CHANGE IT
-version: 2.4.0+40
+version: 2.4.1+40
 
 homepage: https://github.com/liplum/mimir
 repository: https://github.com/liplum/mimir
@@ -210,7 +210,8 @@ msix_config:
   capabilities: internetClient, microphone, webcam
   languages: en,zh-hans,zh-hant
   file_extension: .timetable
-  protocol_activation: life.mysit
+  # life.mysit for backwards support
+  protocol_activation: sit-life, life.mysit
   execution_alias: sitlife
   output_name: SIT-Life
   enable_at_startup: true

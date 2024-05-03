@@ -44,7 +44,7 @@
 			<string>SIT Life URL</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>life.mysit</string>
+				<string>sit-life</string>
 			</array>
 		</dict>
 	</array>

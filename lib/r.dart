@@ -9,7 +9,7 @@ import 'package:sit/entity/version.dart';
 class R {
   const R._();
 
-  static const scheme = "life.mysit";
+  static const scheme = "sit-life";
   static const hiveStorageVersionCache = "2.3.0";
   static const hiveStorageVersionCore = "2.1.1";
   static const appId = "life.mysit.SITLife";
