@@ -141,6 +141,7 @@ dependencies:
   cupertino_onboarding: ^1.2.0
   flutter_swipe_detector: ^2.0.0
   carousel_slider: ^4.2.1
+  glassmorphism: ^3.0.0
   # iCalendar file generator
   enough_icalendar: ^0.16.0
   super_context_menu: ^0.8.12

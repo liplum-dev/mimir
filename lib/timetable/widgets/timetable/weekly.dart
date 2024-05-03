@@ -10,6 +10,7 @@ import 'package:sit/settings/settings.dart';
 import 'package:sit/timetable/palette.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:glassmorphism/glassmorphism.dart';
 
 import '../../events.dart';
 import '../../entity/timetable.dart';
@@ -477,6 +478,27 @@ class CourseCell extends StatelessWidget {
       teachers: teachers,
       // textColor: color.resolveTextColorForReadability(),
     ).center();
+
+    return GlassmorphicContainer(
+      width: 350,
+      height: 350,
+      borderRadius: 20,
+      blur: 5,
+      alignment: Alignment.bottomCenter,
+      border: 0,
+      linearGradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [color, color],
+        stops: [1, 1],
+      ),
+      borderGradient: LinearGradient(
+        colors: [color, color],
+        stops: [1, 1],
+      ),
+      child: innerBuilder != null ? innerBuilder(context, info) : info,
+      margin: const EdgeInsets.all(0.5),
+    );
     return Card.filled(
       clipBehavior: Clip.hardEdge,
       color: color,
