@@ -1,3 +1,6 @@
+import 'package:quiver/collection.dart';
+import 'package:sit/timetable/utils.dart';
+
 extension ListX<E> on List<E> {
   List<E> distinct({bool inplace = true}) {
     final ids = <E>{};
@@ -53,4 +56,16 @@ extension IterableX<E> on Iterable<E> {
   E maxBy<T extends Comparable<T>>(T Function(E) valueOf) {
     return maxByOrNull(valueOf)!;
   }
+}
+
+ListMultimap<K, V> listMultimapFromEntries<T, K, V>(
+  Iterable<T> list, {
+  required K Function(T t) key,
+  required V Function(T t) value,
+}) {
+  final map = ListMultimap<K, V>();
+  for (final e in list) {
+    map.add(key(e), value(e));
+  }
+  return map;
 }

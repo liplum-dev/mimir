@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:flutter/foundation.dart';
+import 'package:quiver/collection.dart';
 import 'package:sit/entity/campus.dart';
 import 'package:sit/l10n/time.dart';
 import 'package:sit/school/entity/school.dart';
@@ -10,6 +11,7 @@ import 'package:sit/school/entity/timetable.dart';
 import 'package:sit/school/utils.dart';
 import 'package:sit/timetable/utils.dart';
 import 'package:collection/collection.dart';
+import 'package:sit/utils/collection.dart';
 import 'package:sit/utils/date.dart';
 import 'package:sit/utils/entity_node.dart';
 import 'patch.dart';
@@ -21,7 +23,9 @@ part 'timetable_entity.g.dart';
 class SitTimetableEntityState {
   final SitTimetable type;
 
-  const SitTimetableEntityState({required this.type});
+  const SitTimetableEntityState({
+    required this.type,
+  });
 }
 
 /// The entity to display.
@@ -59,11 +63,12 @@ class SitTimetableEntity
   void build() {
     days.clear();
     days.addAll(List.generate(
-        maxWeekLength * 7,
-        (index) => SitTimetableDay(
-              weekIndex: index ~/ 7,
-              weekday: Weekday.fromIndex(index % 7),
-            )..parent = this));
+      maxWeekLength * 7,
+      (index) => SitTimetableDay(
+        weekIndex: index ~/ 7,
+        weekday: Weekday.fromIndex(index % 7),
+      )..parent = this,
+    ));
     super.build();
   }
 
@@ -81,7 +86,7 @@ class SitTimetableEntity
   }
 
   void _generateLessons() {
-    final day2Lessons = <SitTimetableDay, List<SitTimetableLesson>>{};
+    final day2Lessons = ListMultimap<SitTimetableDay, SitTimetableLesson>();
     for (final course in state.type.courses.values) {
       if (course.hidden) continue;
       for (final weekIndex in course.weekIndices.getWeekIndices()) {
@@ -96,13 +101,12 @@ class SitTimetableEntity
             course: course,
             parts: parts,
           );
-          final lessons = day2Lessons[day] ??= [];
-          lessons.add(lesson);
+          day2Lessons.add(day, lesson);
         }
       }
     }
-    for (final MapEntry(key: day, value: lessons) in day2Lessons.entries) {
-      day.state = SitTimetableDayState(lessons: lessons);
+    for (final MapEntry(key: day, value: lessons) in day2Lessons.asMap().entries) {
+      day.state = SitTimetableDayState(lessons: lessons.toList());
     }
   }
 
@@ -211,7 +215,7 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
   }
 
   void _generateLessons() {
-    final slot2parts = <SitTimetableLessonSlot, List<SitTimetableLessonPart>>{};
+    final slot2parts = ListMultimap<SitTimetableLessonSlot, SitTimetableLessonPart>();
     final lessons = state.lessons;
     for (final lesson in lessons) {
       final timeslots = lesson.course.timeslots;
@@ -222,13 +226,14 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
         );
         if (0 <= slotIndex && slotIndex < slots.length) {
           final slot = slots[slotIndex];
-          final parts = slot2parts[slot] ??= [];
-          parts.add(part);
+          slot2parts.add(slot, part);
         }
       }
     }
-    for (final MapEntry(key: slot, value: parts) in slot2parts.entries) {
-      slot.state = SitTimetableLessonSlotState(parts: parts);
+    for (final MapEntry(key: slot, value: parts) in slot2parts.asMap().entries) {
+      slot.state = SitTimetableLessonSlotState(
+        parts: listMultimapFromEntries(parts, key: (part) => part.type, value: (part) => part),
+      );
     }
   }
 
@@ -295,7 +300,7 @@ class SitTimetableDay with EntityNodeBase<SitTimetableDayState> implements Entit
 }
 
 class SitTimetableLessonSlotState {
-  final List<SitTimetableLessonPart> parts;
+  final ListMultimap<SitTimetableLesson, SitTimetableLessonPart> parts;
 
   const SitTimetableLessonSlotState({
     required this.parts,
