@@ -279,7 +279,7 @@ class _SitCourseEditorPageState extends State<SitCourseEditorPage> {
         trailing: PlatformIconButton(
           icon: Icon(context.icons.add),
           onPressed: () {
-            final newIndices = List.of(weekIndices.indices);
+            final newIndices = List.of(weekIndices);
             newIndices.add(const TimetableWeekIndex.all((start: 0, end: 1)));
             setState(() {
               weekIndices = TimetableWeekIndices(newIndices);
@@ -288,12 +288,12 @@ class _SitCourseEditorPageState extends State<SitCourseEditorPage> {
           },
         ),
       ),
-      ...weekIndices.indices.mapIndexed((i, index) {
+      ...weekIndices.mapIndexed((i, index) {
         return RepeatingItemEditor(
           childKey: ValueKey(i),
           index: index,
           onChanged: (value) {
-            final newIndices = List.of(weekIndices.indices);
+            final newIndices = List.of(weekIndices);
             newIndices[i] = value;
             setState(() {
               weekIndices = TimetableWeekIndices(newIndices);
@@ -303,7 +303,7 @@ class _SitCourseEditorPageState extends State<SitCourseEditorPage> {
           onDeleted: () {
             setState(() {
               weekIndices = TimetableWeekIndices(
-                List.of(weekIndices.indices)..removeAt(i),
+                List.of(weekIndices)..removeAt(i),
               );
             });
             markChanged();

@@ -4,6 +4,7 @@ import 'package:sit/design/adaptive/dialog.dart';
 import 'package:sit/design/widgets/common.dart';
 import 'package:sit/l10n/time.dart';
 import 'package:rettulf/rettulf.dart';
+import 'package:sit/timetable/utils.dart';
 import '../entity/pos.dart';
 import '../entity/timetable_entity.dart';
 import '../events.dart';
@@ -36,7 +37,7 @@ class FreeDayTip extends StatelessWidget {
       desc: desc,
       subtitle: PlatformTextButton(
         onPressed: () async {
-          await jumpToNearestDayWithClass(context, weekIndex, weekday.index);
+          await jumpToNearestDayWithClass(context, weekIndex, weekday);
         },
         child: i18n.freeTip.findNearestDayWithClass.text(),
       ),
@@ -48,33 +49,22 @@ class FreeDayTip extends StatelessWidget {
   Future<void> jumpToNearestDayWithClass(
     BuildContext ctx,
     int weekIndex,
-    int dayIndex,
+    Weekday weekday,
   ) async {
-    for (int i = weekIndex; i < timetable.weeks.length; i++) {
-      final week = timetable.weeks[i];
-      if (!week.isFree) {
-        final dayIndexStart = weekIndex == i ? dayIndex : 0;
-        for (int j = dayIndexStart; j < week.days.length; j++) {
-          final day = week.days[j];
-          if (day.hasAnyLesson) {
-            eventBus.fire(JumpToPosEvent(TimetablePos(weekIndex: i, weekday: Weekday.fromIndex(j))));
-            return;
-          }
-        }
+    final dayIndex = weekIndex * 7 + weekday.index;
+    for (int j = dayIndex; j < timetable.days.length; j++) {
+      final day = timetable.days[j];
+      if (day.hasAnyLesson()) {
+        eventBus.fire(JumpToPosEvent(TimetablePos.fromDayIndex(dayIndex)));
+        return;
       }
     }
     // Now there's no class forward, so let's search backward.
-    for (int i = weekIndex; 0 <= i; i--) {
-      final week = timetable.weeks[i];
-      if (!week.isFree) {
-        final dayIndexStart = weekIndex == i ? dayIndex : week.days.length - 1;
-        for (int j = dayIndexStart; 0 <= j; j--) {
-          final day = week.days[j];
-          if (day.hasAnyLesson) {
-            eventBus.fire(JumpToPosEvent(TimetablePos(weekIndex: i, weekday: Weekday.fromIndex(j))));
-            return;
-          }
-        }
+    for (int i = dayIndex; 0 <= i; i--) {
+      final day = timetable.days[i];
+      if (day.hasAnyLesson()) {
+        eventBus.fire(JumpToPosEvent(TimetablePos.fromDayIndex(dayIndex)));
+        return;
       }
     }
     // WHAT? NO CLASS IN THE WHOLE TERM?
@@ -126,8 +116,8 @@ class FreeWeekTip extends StatelessWidget {
     int weekIndex, {
     required Weekday defaultWeekday,
   }) async {
-    for (int i = weekIndex; i < timetable.weeks.length; i++) {
-      final week = timetable.weeks[i];
+    for (int i = weekIndex; i < maxWeekLength; i++) {
+      final week = timetable.getWeek(i);
       if (!week.isFree) {
         eventBus.fire(JumpToPosEvent(TimetablePos(weekIndex: i, weekday: defaultWeekday)));
         return;
@@ -135,7 +125,7 @@ class FreeWeekTip extends StatelessWidget {
     }
     // Now there's no class forward, so let's search backward.
     for (int i = weekIndex; 0 <= i; i--) {
-      final week = timetable.weeks[i];
+      final week = timetable.getWeek(i);
       if (!week.isFree) {
         eventBus.fire(JumpToPosEvent(TimetablePos(weekIndex: i, weekday: defaultWeekday)));
         return;

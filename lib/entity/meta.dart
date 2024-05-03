@@ -1,3 +1,4 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:version/version.dart';
@@ -38,6 +39,7 @@ class AppMeta {
   /// For example:
   /// com.apple.testflight
   final String? installerStore;
+  final BaseDeviceInfo deviceInfo;
 
   const AppMeta({
     required this.platform,
@@ -46,6 +48,7 @@ class AppMeta {
     required this.packageName,
     required this.buildSignature,
     required this.installerStore,
+    required this.deviceInfo,
   });
 }
 
@@ -82,6 +85,7 @@ Future<AppMeta> getCurrentVersion() async {
   } else {
     platform = AppPlatform.unknown;
   }
+  final deviceInfo = await getDeviceInfo();
   return AppMeta(
     platform: platform,
     version: Version.parse(versionText),
@@ -89,5 +93,25 @@ Future<AppMeta> getCurrentVersion() async {
     packageName: info.packageName,
     buildSignature: info.buildSignature,
     installerStore: info.installerStore,
+    deviceInfo: deviceInfo,
   );
+}
+
+Future<BaseDeviceInfo> getDeviceInfo() async {
+  final deviceInfo = DeviceInfoPlugin();
+  if (UniversalPlatform.isAndroid) {
+    return await deviceInfo.androidInfo;
+  } else if (UniversalPlatform.isIOS) {
+    return await deviceInfo.iosInfo;
+  } else if (UniversalPlatform.isMacOS) {
+    return await deviceInfo.macOsInfo;
+  } else if (UniversalPlatform.isWindows) {
+    return await deviceInfo.windowsInfo;
+  } else if (UniversalPlatform.isLinux) {
+    return await deviceInfo.linuxInfo;
+  } else if (UniversalPlatform.isWeb) {
+    return await deviceInfo.webBrowserInfo;
+  } else {
+    return BaseDeviceInfo({});
+  }
 }

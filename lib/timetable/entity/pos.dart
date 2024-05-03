@@ -22,6 +22,26 @@ class TimetablePos {
     required this.weekday,
   });
 
+  const TimetablePos.fromDayIndex(int dayIndex)
+      : this(
+          weekIndex: dayIndex ~/ 7,
+          weekday: dayIndex % 7 == 0
+              ? Weekday.monday
+              : dayIndex % 7 == 1
+                  ? Weekday.tuesday
+                  : dayIndex % 7 == 2
+                      ? Weekday.wednesday
+                      : dayIndex % 7 == 3
+                          ? Weekday.thursday
+                          : dayIndex % 7 == 4
+                              ? Weekday.friday
+                              : dayIndex % 7 == 5
+                                  ? Weekday.saturday
+                                  : dayIndex % 7 == 6
+                                      ? Weekday.sunday
+                                      : Weekday.monday,
+        );
+
   static const initial = TimetablePos(weekIndex: 0, weekday: Weekday.monday);
 
   static TimetablePos locate(

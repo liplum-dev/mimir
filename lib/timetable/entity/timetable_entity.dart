@@ -124,12 +124,7 @@ class SitTimetableEntity
   String get signature => type.signature;
 
   SitTimetableDay? getDaySinceStart(int days) {
-    if (days > maxWeekLength * 7) return null;
-    final weekIndex = days ~/ 7;
-    if (weekIndex < 0 || weekIndex >= weeks.length) return null;
-    final week = weeks[weekIndex];
-    final dayIndex = days % 7 - 1;
-    return week.days[dayIndex];
+    return this.days[days - 1];
   }
 
   SitTimetableWeek? getWeekOn(DateTime date) {
@@ -137,20 +132,15 @@ class SitTimetableEntity
     final diff = date.difference(startDate);
     if (diff.inDays > maxWeekLength * 7) return null;
     final weekIndex = diff.inDays ~/ 7;
-    if (weekIndex < 0 || weekIndex >= weeks.length) return null;
-    return weeks[weekIndex];
+    if (weekIndex < 0 || weekIndex >= maxWeekLength) return null;
+    return getWeek(weekIndex);
   }
 
   SitTimetableDay? getDayOn(DateTime date) {
     if (startDate.isAfter(date)) return null;
     final diff = date.difference(startDate);
     if (diff.inDays > maxWeekLength * 7) return null;
-    final weekIndex = diff.inDays ~/ 7;
-    if (weekIndex < 0 || weekIndex >= weeks.length) return null;
-    final week = weeks[weekIndex];
-    // don't -1 here, because inDays always omitted fraction.
-    final dayIndex = diff.inDays % 7;
-    return week.days[dayIndex];
+    return days.elementAtOrNull(diff.inDays);
   }
 }
 

@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sit/credentials/entity/credential.dart';
 import 'package:sit/school/yellow_pages/entity/contact.dart';
-import 'package:sit/entity/version.dart';
+import 'package:sit/entity/meta.dart';
 
 class R {
   const R._();
@@ -18,7 +18,7 @@ class R {
 
   static String get appNameL10n => "appName".tr();
 
-  static late AppMeta currentVersion;
+  static late AppMeta meta;
 
   /// For debugging iOS on other platforms.
   static const debugCupertino = kDebugMode ? false : false;

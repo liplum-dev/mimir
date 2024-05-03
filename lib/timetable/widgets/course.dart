@@ -42,7 +42,7 @@ class TimetableCourseCard extends StatelessWidget {
       ].column(caa: CrossAxisAlignment.start),
       children: courses.map((course) {
         final weekNumbers = course.weekIndices.l10n();
-        final (:begin, :end) = course.calcBeginEndTimePoint(campus);
+        final (:begin, :end) = calcBeginEndTimePoint(course.timeslots, campus, course.place);
         return ListTile(
           isThreeLine: true,
           enabled: !course.hidden,

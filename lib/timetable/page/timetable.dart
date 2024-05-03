@@ -6,6 +6,7 @@ import 'package:rettulf/rettulf.dart';
 import 'package:sit/settings/settings.dart';
 import 'package:sit/timetable/page/screenshot.dart';
 import '../entity/display.dart';
+import '../entity/timetable.dart';
 import '../events.dart';
 import '../i18n.dart';
 import '../entity/timetable_entity.dart';
@@ -31,7 +32,6 @@ class TimetableBoardPage extends StatefulWidget {
 }
 
 class _TimetableBoardPageState extends State<TimetableBoardPage> {
-  final scrollController = ScrollController();
   final $displayMode = ValueNotifier(TimetableInit.storage.lastDisplayMode ?? DisplayMode.weekly);
   late final ValueNotifier<TimetablePos> $currentPos;
 
@@ -48,7 +48,6 @@ class _TimetableBoardPageState extends State<TimetableBoardPage> {
 
   @override
   void dispose() {
-    scrollController.dispose();
     $displayMode.dispose();
     $currentPos.dispose();
     super.dispose();
@@ -65,24 +64,10 @@ class _TimetableBoardPageState extends State<TimetableBoardPage> {
           buildMoreActionsButton(),
         ],
       ),
-      floatingActionButton: InkWell(
-        onLongPress: () async {
-          if ($displayMode.value == DisplayMode.weekly) {
-            await selectWeeklyTimetablePageToJump();
-          } else {
-            await selectDailyTimetablePageToJump();
-          }
-        },
-        child: AutoHideFAB(
-          controller: scrollController,
-          child: const Icon(Icons.undo_rounded),
-          onPressed: () async {
-            final today = timetable.type.locate(DateTime.now());
-            if ($currentPos.value != today) {
-              eventBus.fire(JumpToPosEvent(today));
-            }
-          },
-        ),
+      floatingActionButton: TimetableJumpButton(
+        $displayMode: $displayMode,
+        $currentPos: $currentPos,
+        timetable: timetable.type,
       ),
       body: TimetableBoard(
         timetable: timetable,
@@ -173,32 +158,107 @@ class _TimetableBoardPageState extends State<TimetableBoardPage> {
       ],
     );
   }
+}
 
-  Future<void> selectWeeklyTimetablePageToJump() async {
-    final initialIndex = $currentPos.value.weekIndex;
-    final week2Go = await selectWeekInTimetable(
-      context: context,
-      timetable: timetable.type,
-      initialWeekIndex: initialIndex,
-      submitLabel: i18n.jump,
+Future<void> _selectWeeklyTimetablePageToJump({
+  required BuildContext context,
+  required SitTimetable timetable,
+  required ValueNotifier<TimetablePos> $currentPos,
+}) async {
+  final initialIndex = $currentPos.value.weekIndex;
+  final week2Go = await selectWeekInTimetable(
+    context: context,
+    timetable: timetable,
+    initialWeekIndex: initialIndex,
+    submitLabel: i18n.jump,
+  );
+  if (week2Go == null) return;
+  if (week2Go != initialIndex) {
+    eventBus.fire(JumpToPosEvent($currentPos.value.copyWith(weekIndex: week2Go)));
+  }
+}
+
+Future<void> _selectDailyTimetablePageToJump({
+  required BuildContext context,
+  required SitTimetable timetable,
+  required ValueNotifier<TimetablePos> $currentPos,
+}) async {
+  final currentPos = $currentPos.value;
+  final pos2Go = await selectDayInTimetable(
+    context: context,
+    timetable: timetable,
+    initialPos: currentPos,
+    submitLabel: i18n.jump,
+  );
+  if (pos2Go == null) return;
+  if (pos2Go != currentPos) {
+    eventBus.fire(JumpToPosEvent(pos2Go));
+  }
+}
+
+Future<void> _jumpToToday({
+  required SitTimetable timetable,
+  required ValueNotifier<TimetablePos> $currentPos,
+}) async {
+  final today = timetable.locate(DateTime.now());
+  if ($currentPos.value != today) {
+    eventBus.fire(JumpToPosEvent(today));
+  }
+}
+
+class TimetableJumpButton extends StatelessWidget {
+  final ValueNotifier<DisplayMode> $displayMode;
+  final ValueNotifier<TimetablePos> $currentPos;
+  final SitTimetable timetable;
+  final ScrollController? controller;
+
+  const TimetableJumpButton({
+    super.key,
+    required this.$displayMode,
+    required this.timetable,
+    required this.$currentPos,
+    this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onLongPress: () async {
+        if ($displayMode.value == DisplayMode.weekly) {
+          await _selectWeeklyTimetablePageToJump(
+            context: context,
+            timetable: timetable,
+            $currentPos: $currentPos,
+          );
+        } else {
+          await _selectDailyTimetablePageToJump(
+            context: context,
+            timetable: timetable,
+            $currentPos: $currentPos,
+          );
+        }
+      },
+      child: buildFab(),
     );
-    if (week2Go == null) return;
-    if (week2Go != initialIndex) {
-      eventBus.fire(JumpToPosEvent($currentPos.value.copyWith(weekIndex: week2Go)));
-    }
   }
 
-  Future<void> selectDailyTimetablePageToJump() async {
-    final currentPos = $currentPos.value;
-    final pos2Go = await selectDayInTimetable(
-      context: context,
-      timetable: timetable.type,
-      initialPos: currentPos,
-      submitLabel: i18n.jump,
-    );
-    if (pos2Go == null) return;
-    if (pos2Go != currentPos) {
-      eventBus.fire(JumpToPosEvent(pos2Go));
+  Widget buildFab() {
+    final controller = this.controller;
+    if (controller != null) {
+      return AutoHideFAB(
+        controller: controller,
+        child: const Icon(Icons.undo_rounded),
+        onPressed: () async {
+          await _jumpToToday(timetable: timetable, $currentPos: $currentPos);
+        },
+      );
+    } else {
+      return FloatingActionButton(
+        child: const Icon(Icons.undo_rounded),
+        onPressed: () async {
+          await _jumpToToday(timetable: timetable, $currentPos: $currentPos);
+        },
+      );
     }
   }
 }

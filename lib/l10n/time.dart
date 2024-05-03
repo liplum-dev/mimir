@@ -27,6 +27,7 @@ enum Weekday {
     return (this - firstDay.index).index;
   }
 
+  const Weekday();
   static Weekday fromJson(int json) => Weekday.values.elementAtOrNull(json) ?? Weekday.monday;
 
   static Weekday fromIndex(int index) {

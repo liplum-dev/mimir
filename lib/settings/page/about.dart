@@ -3,32 +3,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:simple_icons/simple_icons.dart';
 import 'package:sit/design/adaptive/dialog.dart';
 import 'package:sit/design/widgets/list_tile.dart';
 import 'package:sit/r.dart';
 import 'package:sit/settings/dev.dart';
 import 'package:rettulf/rettulf.dart';
-import 'package:sit/entity/version.dart';
 import 'package:sit/update/utils.dart';
 import 'package:sit/utils/error.dart';
 import 'package:sit/utils/guard_launch.dart';
-import 'package:web_browser_detect/web_browser_detect.dart';
 import '../i18n.dart';
+import '../widget/device.dart';
 
-class AboutSettingsPage extends StatefulWidget {
+class AboutSettingsPage extends ConsumerStatefulWidget {
   const AboutSettingsPage({
     super.key,
   });
 
   @override
-  State<AboutSettingsPage> createState() => _AboutSettingsPageState();
+  ConsumerState<AboutSettingsPage> createState() => _AboutSettingsPageState();
 }
 
-class _AboutSettingsPageState extends State<AboutSettingsPage> {
+class _AboutSettingsPageState extends ConsumerState<AboutSettingsPage> {
   @override
   Widget build(BuildContext context) {
+    final devMode = ref.watch(Dev.$on);
     return Scaffold(
       body: CustomScrollView(
         physics: const RangeMaintainingScrollPhysics(),
@@ -42,10 +40,10 @@ class _AboutSettingsPageState extends State<AboutSettingsPage> {
           SliverList.list(
             children: [
               const VersionTile(),
-              if (Dev.on)
+              if (devMode)
                 DetailListTile(
                   title: "Installer Store",
-                  subtitle: R.currentVersion.installerStore,
+                  subtitle: R.meta.installerStore ?? i18n.unknown,
                 ),
               DetailListTile(
                 title: i18n.about.icpLicense,
@@ -81,7 +79,7 @@ class _AboutSettingsPageState extends State<AboutSettingsPage> {
                 // FIXME: icon is buggy
                 // icon: SvgPicture.asset("assets/icon.svg").sizedAll(32),
                 applicationName: R.appNameL10n,
-                applicationVersion: R.currentVersion.version.toString(),
+                applicationVersion: R.meta.version.toString(),
                 applicationLegalese: "Copyright©️2023–2024 Liplum Dev. All Rights Reserved.",
               ),
             ],
@@ -105,16 +103,9 @@ class _VersionTileState extends ConsumerState<VersionTile> {
   @override
   Widget build(BuildContext context) {
     final devOn = ref.watch(Dev.$on);
-    final version = R.currentVersion;
+    final version = R.meta;
     return ListTile(
-      leading: switch (version.platform) {
-        AppPlatform.iOS || AppPlatform.macOS => const Icon(SimpleIcons.apple),
-        AppPlatform.android => const Icon(SimpleIcons.android),
-        AppPlatform.linux => const Icon(SimpleIcons.linux),
-        AppPlatform.windows => const Icon(SimpleIcons.windows),
-        AppPlatform.web => Icon(_getBrowserIcon()),
-        AppPlatform.unknown => const Icon(Icons.device_unknown_outlined),
-      },
+      leading: Icon(getDeviceIcon(R.meta)),
       title: i18n.about.version.text(),
       subtitle: "${version.platform.name} ${version.version.toString()}".text(),
       trailing: kIsWeb ? null : const CheckUpdateButton(),
@@ -132,20 +123,6 @@ class _VersionTileState extends ConsumerState<VersionTile> {
             },
     );
   }
-}
-
-IconData _getBrowserIcon() {
-  final browser = Browser.detectOrNull();
-  if (browser == null) return Icons.web;
-  return switch (browser.browserAgent) {
-    BrowserAgent.UnKnown => Icons.web,
-    BrowserAgent.Chrome => SimpleIcons.googlechrome,
-    BrowserAgent.Safari => SimpleIcons.safari,
-    BrowserAgent.Firefox => SimpleIcons.firefoxbrowser,
-    BrowserAgent.Explorer => SimpleIcons.internetexplorer,
-    BrowserAgent.Edge => SimpleIcons.microsoftedge,
-    BrowserAgent.EdgeChromium => SimpleIcons.microsoftedge,
-  };
 }
 
 class CheckUpdateButton extends StatefulWidget {

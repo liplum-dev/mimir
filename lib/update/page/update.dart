@@ -92,7 +92,7 @@ class _ArtifactUpdatePageState extends State<ArtifactUpdatePage> {
       onPressed: ignore
           ? null
           : () async {
-              final download = info.downloadOf(R.currentVersion.platform);
+              final download = info.downloadOf(R.meta.platform);
               if (download == null) return;
               final url = download.defaultUrl;
               if (url == null) return;

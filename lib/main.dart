@@ -21,7 +21,7 @@ import 'package:sit/school/yellow_pages/entity/contact.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sit/settings/meta.dart';
 import 'package:sit/settings/dev.dart';
-import 'package:sit/entity/version.dart';
+import 'package:sit/entity/meta.dart';
 import 'package:sit/storage/prefs.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:version/version.dart';
@@ -63,8 +63,8 @@ void main() async {
   }
   await Files.init();
   // Perform migrations
-  R.currentVersion = await getCurrentVersion();
-  final currentVersion = R.currentVersion.version;
+  R.meta = await getCurrentVersion();
+  final currentVersion = R.meta.version;
   final lastVersionRaw = prefs.getLastVersion();
   final lastVersion = lastVersionRaw != null ? Version.parse(lastVersionRaw) : currentVersion;
   debugPrint("Last version: $lastVersion");

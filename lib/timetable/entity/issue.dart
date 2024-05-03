@@ -69,20 +69,18 @@ extension SitTimetable4IssueX on SitTimetable {
     if (Dev.on) {
       final overlaps = <TimetableCourseOverlapIssue>[];
       final entity = resolve();
-      for (final week in entity.weeks) {
-        for (final day in week.days) {
-          for (var timeslot = 0; timeslot < day.slots.length; timeslot++) {
-            final lessonSlot = day.slots[timeslot];
-            if (lessonSlot.lessons.length >= 2) {
-              final issue = TimetableCourseOverlapIssue(
-                courseKeys: lessonSlot.lessons.map((l) => l.course.courseKey).toList(),
-                weekIndex: week.index,
-                weekday: day.weekday,
-                timeslots: (start: timeslot, end: timeslot),
-              );
-              if (overlaps.every((overlap) => !overlap.isSameOne(issue))) {
-                overlaps.add(issue);
-              }
+      for (final day in entity.days) {
+        for (var timeslot = 0; timeslot < day.timeslot2LessonSlot.length; timeslot++) {
+          final lessonSlot = day.timeslot2LessonSlot[timeslot];
+          if (lessonSlot.lessons.length >= 2) {
+            final issue = TimetableCourseOverlapIssue(
+              courseKeys: lessonSlot.lessons.map((l) => l.course.courseKey).toList(),
+              weekIndex: day.weekIndex,
+              weekday: day.weekday,
+              timeslots: (start: timeslot, end: timeslot),
+            );
+            if (overlaps.every((overlap) => !overlap.isSameOne(issue))) {
+              overlaps.add(issue);
             }
           }
         }

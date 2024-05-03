@@ -265,12 +265,9 @@ class TimetableCard extends StatelessWidget {
             activator: const SingleActivator(LogicalKeyboardKey.keyP),
             action: () async {
               if (!ctx.mounted) return;
-              await context.showSheet(
-                (context) => TimetableStyleProv(
-                  child: TimetablePreviewPage(
-                    timetable: timetable,
-                  ),
-                ),
+              await previewTimetable(
+                context,
+                timetable: timetable,
               );
             },
           ),

@@ -209,7 +209,7 @@ class TimetableOneWeek extends StatelessWidget {
   Widget build(BuildContext context) {
     final todayPos = timetable.type.locate(DateTime.now());
     final cellSize = Size(fullSize.width / 7.62, fullSize.height / 11);
-    final timetableWeek = timetable.weeks[weekIndex];
+    final timetableWeek = timetable.getWeek(weekIndex);
 
     final view = buildSingleWeekView(
       timetableWeek,
@@ -284,18 +284,17 @@ class TimetableOneWeek extends StatelessWidget {
     required TimetablePos todayPos,
   }) {
     final cells = <Widget>[];
-    final weekday = day.weekday;
     cells.add(Container(
       width: cellSize.width,
       decoration: BoxDecoration(
-        color: todayPos.weekIndex == weekIndex && todayPos.weekday == weekday
+        color: todayPos.weekIndex == weekIndex && todayPos.weekday == day.weekday
             ? context.colorScheme.secondaryContainer
             : null,
         border: Border(bottom: getTimetableBorderSide(context)),
       ),
       child: HeaderCellTextBox(
         weekIndex: weekIndex,
-        weekday: weekday,
+        weekday: day.weekday,
         startDate: timetable.type.startDate,
       ),
     ));
@@ -440,9 +439,9 @@ class _InteractiveCourseCellWithTooltipState extends State<InteractiveCourseCell
   }
 
   String buildTooltipMessage() {
-    final lessons = widget.lesson.course.calcBeginEndTimePointForEachLesson(widget.timetable.campus);
-    final lessonTimeTip = lessons.map((time) => "${time.begin.l10n(context)}–${time.end.l10n(context)}").join("\n");
     final course = widget.lesson.course;
+    final classTimes = calcBeginEndTimePointForEachLesson(course.timeslots, widget.timetable.campus, course.place);
+    final lessonTimeTip = classTimes.map((time) => "${time.begin.l10n(context)}–${time.end.l10n(context)}").join("\n");
     var tooltip = "${i18n.course.courseCode} ${course.courseCode}";
     if (course.classCode.isNotEmpty) {
       tooltip += "\n${i18n.course.classCode} ${course.classCode}";

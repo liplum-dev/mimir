@@ -37,9 +37,8 @@ class Migrations {
               // proxy
               final proxyBox = Settings.proxy.box;
               for (final cat in ProxyCat.values) {
-                if (Settings.proxy.getProfileOf(cat) != null) {
-                  continue;
-                }
+                // if the user has already added new proxy profile, ignore this
+                if (Settings.proxy.getProfileOf(cat) != null) continue;
                 final address = proxyBox.safeGet<String>("/proxy/${cat.name}/address");
                 final addressUri = address != null ? Uri.tryParse(address) : null;
                 final enabled = proxyBox.safeGet<bool>("/proxy/${cat.name}/enabled");

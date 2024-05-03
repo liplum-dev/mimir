@@ -117,7 +117,7 @@ class CourseDescTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final weekNumbers = course.weekIndices.l10n();
-    final (:begin, :end) = course.calcBeginEndTimePoint(campus);
+    final (:begin, :end) = calcBeginEndTimePoint(course.timeslots, campus, course.place);
     return ListTile(
       isThreeLine: true,
       selected: selected,

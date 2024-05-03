@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.4.1
+- Changed the custom URL and provided backward compatibility:
+  - scheme: from `life.mysit` to `sit-life`.
+  - Added host, `timetable`, for timetable-related data.
+- Changed timetable file format and provided backward compatibility.
+- Fixed QR code scanner issue.
+
 ## v2.4.0
 - Redesigned the expense statistics page.
 - Redesigned the network tool page.

@@ -37,17 +37,23 @@ class UpdateService {
     return ArtifactVersionInfo.fromJson(json);
   }
 
-  Future<ArtifactVersionInfo?> getLatestVersionFromAppStore() async {
+  /// return null if the version from iTunes isn't identical to official's
+  Future<ArtifactVersionInfo?> getLatestVersionFromAppStoreAndOfficial() async {
     final official = await getLatestVersionFromOfficial();
-    final packageInfo = await PackageInfo.fromPlatform();
-    final version = await _getVersionFromItunes(
-      UniversalPlatform.isIOS || UniversalPlatform.isMacOS ? packageInfo.packageName : "life.mysit.SITLife",
-      iosAppStoreRegion: "cn",
-    );
+    final version = await getLatestVersionFromAppStore();
     if (official.version == version) {
       return official;
     }
     return null;
+  }
+
+  Future<Version?> getLatestVersionFromAppStore({String? iosAppStoreRegion = "cn"}) async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final version = await _getVersionFromItunes(
+      UniversalPlatform.isIOS || UniversalPlatform.isMacOS ? packageInfo.packageName : "life.mysit.SITLife",
+      iosAppStoreRegion: iosAppStoreRegion,
+    );
+    return version;
   }
 
   Future<Version?> _getVersionFromItunes(String bundleId, {String? iosAppStoreRegion}) async {

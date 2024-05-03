@@ -227,13 +227,10 @@ class PaletteCard extends StatelessWidget {
             icon: isCupertino ? CupertinoIcons.eye : Icons.preview,
             activator: const SingleActivator(LogicalKeyboardKey.keyP),
             action: () async {
-              await context.showSheet(
-                (context) => TimetableStyleProv(
-                  palette: palette,
-                  child: TimetablePreviewPage(
-                    timetable: timetable,
-                  ),
-                ),
+              await previewTimetable(
+                context,
+                timetable: timetable,
+                palette: palette,
               );
             },
           ),

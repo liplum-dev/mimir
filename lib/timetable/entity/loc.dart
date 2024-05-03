@@ -100,7 +100,7 @@ class TimetableDayLoc {
 
   SitTimetableDay? resolveDay(SitTimetableEntity entity) {
     return switch (mode) {
-      TimetableDayLocMode.pos => entity.weeks[pos.weekIndex].days[pos.weekday.index],
+      TimetableDayLocMode.pos => entity.getDay(pos.weekIndex, pos.weekday),
       TimetableDayLocMode.date => entity.getDayOn(date),
     };
   }

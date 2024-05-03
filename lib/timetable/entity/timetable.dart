@@ -200,6 +200,23 @@ class SitTimetable {
   }
 }
 
+TimetableWeekIndices _weekIndicesFromJson(dynamic json) {
+  // for backwards support
+  if (json is Map) {
+    return TimetableWeekIndices(
+      (json['indices'] as List<dynamic>).map((e) => TimetableWeekIndex.fromJson(e as Map<String, dynamic>)).toList(),
+    );
+  } else {
+    return TimetableWeekIndices(
+      (json as List<dynamic>).map((e) => TimetableWeekIndex.fromJson(e as Map<String, dynamic>)).toList(),
+    );
+  }
+}
+
+dynamic _weekIndicesToJson(TimetableWeekIndices indices) {
+  return indices;
+}
+
 @JsonSerializable()
 @CopyWith(skipFields: true)
 @immutable
@@ -216,7 +233,7 @@ class SitCourse {
   @JsonKey()
   final String place;
 
-  @JsonKey()
+  @JsonKey(fromJson: _weekIndicesFromJson, toJson: _weekIndicesToJson)
   final TimetableWeekIndices weekIndices;
 
   /// e.g.: (start:1, end: 3) means `2nd slot to 4th slot`.
@@ -339,32 +356,30 @@ class SitCourse {
   }
 }
 
-extension SitCourseX on SitCourse {
-  List<ClassTime> buildingTimetableOf(Campus campus) => getTeachingBuildingTimetable(campus, place);
+List<ClassTime> buildingTimetableOf(Campus campus, [String? place]) => getTeachingBuildingTimetable(campus, place);
 
-  /// Based on [SitCourse.timeslots], compose a full-length class time.
-  /// Starts with the first part starts.
-  /// Ends with the last part ends.
-  ClassTime calcBeginEndTimePoint(Campus campus) {
-    final timetable = buildingTimetableOf(campus);
-    final (:start, :end) = timeslots;
-    return (begin: timetable[start].begin, end: timetable[end].end);
-  }
+/// Based on [SitCourse.timeslots], compose a full-length class time.
+/// Starts with the first part starts.
+/// Ends with the last part ends.
+ClassTime calcBeginEndTimePoint(({int start, int end}) timeslots, Campus campus, [String? place]) {
+  final timetable = buildingTimetableOf(campus, place);
+  final (:start, :end) = timeslots;
+  return (begin: timetable[start].begin, end: timetable[end].end);
+}
 
-  List<ClassTime> calcBeginEndTimePointForEachLesson(Campus campus) {
-    final timetable = buildingTimetableOf(campus);
-    final (:start, :end) = timeslots;
-    final result = <ClassTime>[];
-    for (var timeslot = start; timeslot <= end; timeslot++) {
-      result.add(timetable[timeslot]);
-    }
-    return result;
+List<ClassTime> calcBeginEndTimePointForEachLesson(({int start, int end}) timeslots, Campus campus, [String? place]) {
+  final timetable = buildingTimetableOf(campus, place);
+  final (:start, :end) = timeslots;
+  final result = <ClassTime>[];
+  for (var timeslot = start; timeslot <= end; timeslot++) {
+    result.add(timetable[timeslot]);
   }
+  return result;
+}
 
-  ClassTime calcBeginEndTimePointOfLesson(Campus campus, int timeslot) {
-    final timetable = buildingTimetableOf(campus);
-    return timetable[timeslot];
-  }
+ClassTime calcBeginEndTimePointOfLesson(int timeslot, Campus campus, [String? place]) {
+  final timetable = buildingTimetableOf(campus, place);
+  return timetable[timeslot];
 }
 
 @JsonEnum()
@@ -470,14 +485,7 @@ class TimetableWeekIndex {
   Map<String, dynamic> toJson() => _$TimetableWeekIndexToJson(this);
 }
 
-@JsonSerializable()
-@immutable
-class TimetableWeekIndices {
-  @JsonKey()
-  final List<TimetableWeekIndex> indices;
-
-  const TimetableWeekIndices(this.indices);
-
+extension type const TimetableWeekIndices(List<TimetableWeekIndex> indices) implements List<TimetableWeekIndex> {
   bool match(int weekIndex) {
     for (final index in indices) {
       if (index.match(weekIndex)) return true;
@@ -533,14 +541,6 @@ class TimetableWeekIndices {
     return res;
   }
 
-  @override
-  bool operator ==(Object other) {
-    return other is TimetableWeekIndices && runtimeType == other.runtimeType && indices.equalsElements(other.indices);
-  }
-
-  @override
-  int get hashCode => Object.hashAll(indices);
-
   void serialize(ByteWriter writer) {
     writer.uint8(indices.length);
     for (final index in indices) {
@@ -554,9 +554,9 @@ class TimetableWeekIndices {
     }));
   }
 
-  factory TimetableWeekIndices.fromJson(Map<String, dynamic> json) => _$TimetableWeekIndicesFromJson(json);
-
-  Map<String, dynamic> toJson() => _$TimetableWeekIndicesToJson(this);
+  // factory TimetableWeekIndices.fromJson(Map<String, dynamic> json) => _$TimetableWeekIndicesFromJson(json);
+  //
+  // Map<String, dynamic> toJson() => _$TimetableWeekIndicesToJson(this);
 
   String toDartCode() {
     return "TimetableWeekIndices("

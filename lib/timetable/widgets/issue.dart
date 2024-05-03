@@ -154,7 +154,7 @@ class _TimetableCourseOverlapIssueWidgetState extends State<TimetableCourseOverl
             title: courses.map((course) => course.courseName).join(", ").text(),
             subtitle: [
               ...courses.map((course) {
-                final (:begin, :end) = course.calcBeginEndTimePoint(timetable.campus);
+                final (:begin, :end) = calcBeginEndTimePoint(course.timeslots, timetable.campus, course.place);
                 return "${Weekday.fromIndex(course.dayIndex).l10n()} ${begin.l10n(context)}–${end.l10n(context)}"
                     .text();
               }),

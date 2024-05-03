@@ -272,52 +272,50 @@ String convertTimetable2ICal({
   final alarm = config.alarm;
   final merged = config.isLessonMerged;
   final added = <SitTimetableLesson>{};
-  for (final week in timetable.weeks) {
-    for (final day in week.days) {
-      for (final lessonSlot in day.slots) {
-        for (final part in lessonSlot.lessons) {
-          final lesson = part.type;
-          if (merged && added.contains(lesson)) {
-            continue;
+  for (final day in timetable.days) {
+    for (final lessonSlot in day.timeslot2LessonSlot) {
+      for (final part in lessonSlot.lessons) {
+        final lesson = part.type;
+        if (merged && added.contains(lesson)) {
+          continue;
+        } else {
+          added.add(lesson);
+        }
+        final course = part.course;
+        final teachers = course.teachers.join(', ');
+        final startTime = (merged ? lesson.startTime : part.startTime).toUtc();
+        final endTime = (merged ? lesson.endTime : part.endTime).toUtc();
+        final uid = merged
+            ? "${R.appId}.${course.courseCode}.${day.weekIndex}.${day.weekday.index}.${lesson.startIndex}-${lesson.endIndex}"
+            : "${R.appId}.${course.courseCode}.${day.weekIndex}.${day.weekday.index}.${part.index}";
+        // Use UTC
+        final event = calendar.addEvent(
+          uid: uid,
+          summary: course.courseName,
+          location: course.place,
+          description: teachers,
+          comment: teachers,
+          start: startTime,
+          end: endTime,
+        );
+        if (alarm != null) {
+          final trigger = startTime.subtract(alarm.alarmBeforeClass).toUtc();
+          if (alarm.isDisplayAlarm) {
+            event.addAlarmDisplay(
+              triggerDate: trigger,
+              description: "${course.courseName} ${course.place} $teachers",
+              repeating: (repeat: 1, duration: alarm.alarmDuration),
+            );
           } else {
-            added.add(lesson);
+            event.addAlarmAudio(
+              triggerDate: trigger,
+              repeating: (repeat: 1, duration: alarm.alarmDuration),
+            );
           }
-          final course = part.course;
-          final teachers = course.teachers.join(', ');
-          final startTime = (merged ? lesson.startTime : part.startTime).toUtc();
-          final endTime = (merged ? lesson.endTime : part.endTime).toUtc();
-          final uid = merged
-              ? "${R.appId}.${course.courseCode}.${week.index}.${day.weekday.index}.${lesson.startIndex}-${lesson.endIndex}"
-              : "${R.appId}.${course.courseCode}.${week.index}.${day.weekday.index}.${part.index}";
-          // Use UTC
-          final event = calendar.addEvent(
-            uid: uid,
-            summary: course.courseName,
-            location: course.place,
-            description: teachers,
-            comment: teachers,
-            start: startTime,
-            end: endTime,
-          );
-          if (alarm != null) {
-            final trigger = startTime.subtract(alarm.alarmBeforeClass).toUtc();
-            if (alarm.isDisplayAlarm) {
-              event.addAlarmDisplay(
-                triggerDate: trigger,
-                description: "${course.courseName} ${course.place} $teachers",
-                repeating: (repeat: 1, duration: alarm.alarmDuration),
-              );
-            } else {
-              event.addAlarmAudio(
-                triggerDate: trigger,
-                repeating: (repeat: 1, duration: alarm.alarmDuration),
-              );
-            }
-          }
-          if (merged) {
-            // skip the `lessonParts` loop
-            break;
-          }
+        }
+        if (merged) {
+          // skip the `lessonParts` loop
+          break;
         }
       }
     }

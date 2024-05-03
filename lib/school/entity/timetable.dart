@@ -118,7 +118,7 @@ const xuhuiCampusTimetable = <ClassTime>[
   (begin: TimePoint(19, 40), end: TimePoint(20, 25)),
 ];
 
-List<ClassTime> getTeachingBuildingTimetable(Campus campus,[String? place]) {
+List<ClassTime> getTeachingBuildingTimetable(Campus campus, [String? place]) {
   if (campus == Campus.xuhui) {
     return xuhuiCampusTimetable;
   }

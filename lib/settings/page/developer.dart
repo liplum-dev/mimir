@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:simple_icons/simple_icons.dart';
 import 'package:sit/app.dart';
 import 'package:sit/credentials/entity/credential.dart';
 import 'package:sit/credentials/entity/login_status.dart';
@@ -22,6 +23,9 @@ import 'package:sit/settings/dev.dart';
 import 'package:sit/design/widgets/navigation.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:sit/settings/settings.dart';
+import 'package:sit/update/init.dart';
+import 'package:sit/utils/guard_launch.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../i18n.dart';
 
 class DeveloperOptionsPage extends ConsumerStatefulWidget {
@@ -82,6 +86,30 @@ class _DeveloperOptionsPageState extends ConsumerState<DeveloperOptionsPage> {
                 ),
               const AppLinksTile(),
               const DebugGoRouteTile(),
+              const DebugWebViewTile(),
+              DebugFetchVersionTile(
+                title: "Official".text(),
+                fetch: () async {
+                  final info = await UpdateInit.service.getLatestVersionFromOfficial();
+                  return info.version.toString();
+                },
+              ),
+              DebugFetchVersionTile(
+                leading: const Icon(SimpleIcons.apple),
+                title: "App Store CN".text(),
+                fetch: () async {
+                  final info = await UpdateInit.service.getLatestVersionFromAppStore();
+                  return "${info!}";
+                },
+              ),
+              DebugFetchVersionTile(
+                leading: const Icon(SimpleIcons.apple),
+                title: "App Store".text(),
+                fetch: () async {
+                  final info = await UpdateInit.service.getLatestVersionFromAppStore(iosAppStoreRegion: null);
+                  return "${info!}";
+                },
+              ),
             ]),
           ),
         ],
@@ -186,17 +214,15 @@ class _DebugGoRouteTileState extends State<DebugGoRouteTile> {
           hintText: "/anywhere",
         ),
       ),
-      trailing: [
-        $route >>
-            (ctx, route) => PlatformIconButton(
-                  onPressed: route.text.isEmpty
-                      ? null
-                      : () {
-                          go(route.text);
-                        },
-                  icon: const Icon(Icons.arrow_forward),
-                )
-      ].row(mas: MainAxisSize.min),
+      trailing: $route >>
+          (ctx, route) => PlatformIconButton(
+                onPressed: route.text.isEmpty
+                    ? null
+                    : () {
+                        go(route.text);
+                      },
+                icon: const Icon(Icons.arrow_forward),
+              ),
     );
   }
 
@@ -205,6 +231,60 @@ class _DebugGoRouteTileState extends State<DebugGoRouteTile> {
       route = "/$route";
     }
     context.push(route);
+  }
+}
+
+class DebugWebViewTile extends StatefulWidget {
+  const DebugWebViewTile({super.key});
+
+  @override
+  State<DebugWebViewTile> createState() => _DebugWebViewTileState();
+}
+
+class _DebugWebViewTileState extends State<DebugWebViewTile> {
+  final $url = TextEditingController();
+
+  @override
+  void dispose() {
+    $url.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      isThreeLine: true,
+      leading: const Icon(Icons.web),
+      title: "Type URL".text(),
+      subtitle: TextField(
+        controller: $url,
+        textInputAction: TextInputAction.go,
+        onSubmitted: (text) {
+          if (Uri.tryParse($url.text) != null) {
+            go(text);
+          }
+        },
+        decoration: const InputDecoration(
+          hintText: "https://google.com",
+        ),
+      ),
+      trailing: $url >>
+          (ctx, url) => PlatformIconButton(
+                onPressed: Uri.tryParse(url.text) == null
+                    ? null
+                    : () {
+                        go(url.text);
+                      },
+                icon: const Icon(Icons.arrow_forward),
+              ),
+    );
+  }
+
+  void go(String url) {
+    context.push(Uri(
+      path: "/browser",
+      queryParameters: {"url": url.toString()},
+    ).toString());
   }
 }
 
@@ -332,6 +412,55 @@ class DebugExpenseUserOverrideTile extends ConsumerWidget {
         }
       },
       trailing: Icon(context.icons.edit),
+    );
+  }
+}
+
+class DebugFetchVersionTile extends StatefulWidget {
+  final Widget? title;
+  final Widget? leading;
+  final Future<String> Function() fetch;
+
+  const DebugFetchVersionTile({
+    super.key,
+    this.title,
+    this.leading,
+    required this.fetch,
+  });
+
+  @override
+  State<DebugFetchVersionTile> createState() => _DebugFetchVersionTileState();
+}
+
+class _DebugFetchVersionTileState extends State<DebugFetchVersionTile> {
+  String? version;
+  var isFetching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetch();
+  }
+
+  Future<void> fetch() async {
+    setState(() {
+      isFetching = true;
+    });
+    final v = await widget.fetch();
+    if (!mounted) return;
+    setState(() {
+      version = v;
+      isFetching = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: widget.title,
+      leading: widget.leading,
+      subtitle: version?.text(),
+      trailing: isFetching ? const CircularProgressIndicator.adaptive() : null,
     );
   }
 }

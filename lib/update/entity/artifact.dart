@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:sit/entity/version.dart';
+import 'package:sit/entity/meta.dart';
 import 'package:version/version.dart';
 
 part 'artifact.g.dart';

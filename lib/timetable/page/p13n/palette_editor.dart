@@ -5,7 +5,6 @@ import 'package:flutter_platform_widgets/flutter_platform_widgets.dart' hide isC
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rettulf/rettulf.dart';
 import 'package:sit/design/adaptive/dialog.dart';
-import 'package:sit/design/adaptive/foundation.dart';
 import 'package:sit/design/adaptive/multiplatform.dart';
 import 'package:sit/design/adaptive/swipe.dart';
 import 'package:sit/l10n/extension.dart';
@@ -15,7 +14,6 @@ import 'package:sit/utils/save.dart';
 import '../../entity/platte.dart';
 import '../../i18n.dart';
 import '../../init.dart';
-import '../../widgets/style.dart';
 
 /// [TimetablePalette] object will be popped.
 class TimetablePaletteEditorPage extends ConsumerStatefulWidget {
@@ -89,13 +87,10 @@ class _TimetablePaletteEditorPageState extends ConsumerState<TimetablePaletteEdi
                         PlatformTextButton(
                           child: i18n.preview.text(),
                           onPressed: () async {
-                            await context.showSheet(
-                              (context) => TimetableStyleProv(
-                                palette: buildPalette(),
-                                child: TimetablePreviewPage(
-                                  timetable: timetable,
-                                ),
-                              ),
+                            await previewTimetable(
+                              context,
+                              timetable: timetable,
+                              palette: buildPalette(),
                             );
                           },
                         ),

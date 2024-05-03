@@ -164,9 +164,8 @@ class _TimetableOneDayPageState extends State<TimetableOneDayPage> with Automati
 
   Widget buildPage(BuildContext ctx) {
     int weekIndex = widget.weekIndex;
-    final week = widget.timetable.weeks[weekIndex];
-    final day = week[widget.weekday];
-    if (!day.hasAnyLesson) {
+    final day = widget.timetable.getDay(weekIndex, widget.weekday);
+    if (!day.hasAnyLesson()) {
       return FreeDayTip(
         timetable: widget.timetable,
         weekIndex: weekIndex,
@@ -231,7 +230,7 @@ class _TimetableOneDayPageState extends State<TimetableOneDayPage> with Automati
       themeColor: context.colorScheme.primary,
       isLessonTaken: lesson.endTime.isBefore(DateTime.now()),
     );
-    final classTime = course.buildingTimetableOf(timetable.campus)[timeslot];
+    final classTime = calcBeginEndTimePointOfLesson(timeslot, timetable.campus, course.place);
     return [
       ClassTimeCard(
         color: color,
@@ -361,7 +360,7 @@ class LessonOverlapGroup extends StatelessWidget {
       final lesson = lessonsInSlot[lessonIndex];
       final course = lesson.course;
       final color = timetable.resolveColor(TimetableStyle.of(context).platte, course).byTheme(context.theme);
-      classTime = course.buildingTimetableOf(timetable.campus)[timeslot];
+      classTime = calcBeginEndTimePointOfLesson(timeslot, timetable.campus, course.place);
       final row = LessonCard(
         lesson: lesson,
         course: course,

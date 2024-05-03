@@ -53,6 +53,10 @@ android {
     targetSdkVersion flutter.compileSdkVersion
     versionCode flutterVersionCode.toInteger()
     versionName flutterVersionName
+    ndk {
+//      removing "x86" and "x86_64" support will shrink about 12% file size.
+//      abiFilters 'arm64-v8a', 'armeabi-v7a'
+    }
   }
 
   if (keystorePropertiesFile.exists()) {
@@ -68,6 +72,8 @@ android {
 
   buildTypes {
     release {
+      minifyEnabled true
+      shrinkResources true
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
       if (keystorePropertiesFile.exists()) {
         signingConfig signingConfigs.release

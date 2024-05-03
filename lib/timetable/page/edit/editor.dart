@@ -437,7 +437,7 @@ class TimetableEditableCourseCard extends StatelessWidget {
       // sub-courses
       children: courses.mapIndexed((i, course) {
         final weekNumbers = course.weekIndices.l10n();
-        final (:begin, :end) = course.calcBeginEndTimePoint(campus);
+        final (:begin, :end) = calcBeginEndTimePoint(course.timeslots, campus, course.place);
         return WithSwipeAction(
           childKey: ValueKey(course.courseKey),
           right: onCourseRemoved == null
