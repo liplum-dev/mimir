@@ -47,6 +47,8 @@ sealed class TimetablePatchEntry {
 
   Map<String, dynamic> toJson();
 
+  String l10n();
+
   @override
   String toString() => toDartCode();
 
@@ -150,6 +152,10 @@ enum TimetablePatchType<TPatch extends TimetablePatch> {
   String l10n() => "timetable.patch.type.$name".tr();
 }
 
+abstract interface class WithTimetableDayLoc {
+  Iterable<TimetableDayLoc> get allLoc;
+}
+
 /// To opt-in [JsonSerializable], please specify `toJson` parameter to [TimetablePatch.toJson].
 sealed class TimetablePatch extends TimetablePatchEntry {
   @JsonKey()
@@ -223,6 +229,9 @@ class TimetablePatchSet extends TimetablePatchEntry {
 
   @override
   void _serialize(ByteWriter writer) => _serializeLocal(this, writer);
+
+  @override
+  String l10n() => name;
 }
 
 class BuiltinTimetablePatchSet implements TimetablePatchSet {
@@ -251,6 +260,9 @@ class BuiltinTimetablePatchSet implements TimetablePatchSet {
 
   @override
   String toString() => toDartCode();
+
+  @override
+  String l10n() => name;
 }
 
 //
@@ -339,12 +351,15 @@ class TimetableUnknownPatch extends TimetablePatch {
 }
 
 @JsonSerializable()
-class TimetableRemoveDayPatch extends TimetablePatch {
+class TimetableRemoveDayPatch extends TimetablePatch implements WithTimetableDayLoc {
   @override
   TimetablePatchType get type => TimetablePatchType.removeDay;
 
   @JsonKey()
   final List<TimetableDayLoc> all;
+
+  @override
+  Iterable<TimetableDayLoc> get allLoc => all;
 
   const TimetableRemoveDayPatch({
     required this.all,
@@ -403,13 +418,16 @@ class TimetableRemoveDayPatch extends TimetablePatch {
 }
 
 @JsonSerializable()
-class TimetableMoveDayPatch extends TimetablePatch {
+class TimetableMoveDayPatch extends TimetablePatch implements WithTimetableDayLoc {
   @override
   TimetablePatchType get type => TimetablePatchType.moveDay;
   @JsonKey()
   final TimetableDayLoc source;
   @JsonKey()
   final TimetableDayLoc target;
+
+  @override
+  Iterable<TimetableDayLoc> get allLoc => [source, target];
 
   const TimetableMoveDayPatch({
     required this.source,
@@ -458,13 +476,16 @@ class TimetableMoveDayPatch extends TimetablePatch {
 }
 
 @JsonSerializable()
-class TimetableCopyDayPatch extends TimetablePatch {
+class TimetableCopyDayPatch extends TimetablePatch implements WithTimetableDayLoc {
   @override
   TimetablePatchType get type => TimetablePatchType.copyDay;
   @JsonKey()
   final TimetableDayLoc source;
   @JsonKey()
   final TimetableDayLoc target;
+
+  @override
+  Iterable<TimetableDayLoc> get allLoc => [source, target];
 
   const TimetableCopyDayPatch({
     required this.source,
@@ -513,13 +534,16 @@ class TimetableCopyDayPatch extends TimetablePatch {
 }
 
 @JsonSerializable()
-class TimetableSwapDaysPatch extends TimetablePatch {
+class TimetableSwapDaysPatch extends TimetablePatch implements WithTimetableDayLoc {
   @override
   TimetablePatchType get type => TimetablePatchType.swapDays;
   @JsonKey()
   final TimetableDayLoc a;
   @JsonKey()
   final TimetableDayLoc b;
+
+  @override
+  Iterable<TimetableDayLoc> get allLoc => [a, b];
 
   const TimetableSwapDaysPatch({
     required this.a,

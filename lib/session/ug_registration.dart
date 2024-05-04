@@ -69,6 +69,8 @@ class UgRegistrationSession {
         url,
         options: Options(
           method: "GET",
+          sendTimeout: const Duration(milliseconds: 3000),
+          receiveTimeout: const Duration(milliseconds: 3000),
           contentType: Headers.formUrlEncodedContentType,
           followRedirects: false,
           validateStatus: (status) => status! < 400,

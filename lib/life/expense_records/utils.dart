@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:sit/life/expense_records/entity/local.dart';
+import 'package:sit/lifecycle.dart';
 
 import 'package:sit/school/utils.dart';
 import 'package:sit/utils/date.dart';
@@ -152,6 +153,7 @@ String resolveTime4Display({
   required DateTime date,
 }) {
   final now = DateTime.now();
+  final local = $key.currentContext?.locale.toString();
   switch (mode) {
     case StatisticsMode.day:
       final dayDiff = now.difference(date).inDays;
@@ -173,8 +175,8 @@ String resolveTime4Display({
       }
       return formatDateSpan(from: date, to: StatisticsMode.week.getAfterUnitTime(start: date));
     case StatisticsMode.month:
-      final yearMonthFormat = DateFormat.yMMMM();
-      final monthFormat = DateFormat.MMMM();
+      final yearMonthFormat = DateFormat.yMMMM(local);
+      final monthFormat = DateFormat.MMMM(local);
       if (date.year == now.year) {
         if (date.month == now.month) {
           return i18n.stats.thisMonth;
@@ -187,7 +189,7 @@ String resolveTime4Display({
         return yearMonthFormat.format(date);
       }
     case StatisticsMode.year:
-      final yearFormat = DateFormat.y();
+      final yearFormat = DateFormat.y(local);
       if (date.year == now.year) {
         return i18n.stats.thisYear;
       } else if (date.year == now.year - 1) {

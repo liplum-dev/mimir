@@ -162,7 +162,7 @@ class StatisticsDelegate {
       side: _buildSideTitle,
       bottom: (ctx, value, meta) {
         final index = value.toInt();
-        if (!(index == 0 || index == data.length - 1) && index % sep != 0) {
+        if (sep != 0 && (!(index == 0 || index == data.length - 1) && index % sep != 0)) {
           return const SizedBox();
         }
         return SideTitleWidget(

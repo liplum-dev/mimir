@@ -1,5 +1,7 @@
 import 'package:sit/l10n/time.dart';
 import 'package:sit/settings/dev.dart';
+import 'package:sit/timetable/entity/loc.dart';
+import 'package:sit/timetable/entity/patch.dart';
 import 'package:statistics/statistics.dart';
 
 import 'timetable.dart';
@@ -19,11 +21,38 @@ class TimetableCbeIssue implements TimetableIssue {
     required this.courseKey,
   });
 
-  static bool detectCbe(SitCourse course) {
+  static bool detect(SitCourse course) {
     if (course.courseName.contains("自修") || course.courseName.contains("免听")) {
       return true;
     }
     return false;
+  }
+}
+
+/// Credit by Examination
+class TimetablePatchOutOfRangeIssue implements TimetableIssue {
+  final int patchIndex;
+
+  const TimetablePatchOutOfRangeIssue({
+    required this.patchIndex,
+  });
+
+  static bool detect(SitTimetable timetable, TimetablePatch patch) {
+    if (patch is WithTimetableDayLoc) {
+      for (final loc in (patch as WithTimetableDayLoc).allLoc) {
+        if (loc.mode == TimetableDayLocMode.date) {
+          if (!timetable.inRange(loc.date)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  TimetablePatch locate(SitTimetable timetable) {
+    final patch = timetable.patches[patchIndex];
+    return patch as TimetablePatch;
   }
 }
 
@@ -58,7 +87,7 @@ extension SitTimetable4IssueX on SitTimetable {
 
     // check if any cbe
     for (final course in courses.values) {
-      if (!course.hidden && TimetableCbeIssue.detectCbe(course)) {
+      if (!course.hidden && TimetableCbeIssue.detect(course)) {
         issues.add(TimetableCbeIssue(
           courseKey: course.courseKey,
         ));
@@ -87,7 +116,18 @@ extension SitTimetable4IssueX on SitTimetable {
       }
       issues.addAll(overlaps);
     }
-
+    if (Dev.on) {
+      for (var i = 0; i < patches.length; i++) {
+        final patch = patches[i];
+        if (patch is TimetablePatch) {
+          if (TimetablePatchOutOfRangeIssue.detect(this, patch)) {
+            issues.add(TimetablePatchOutOfRangeIssue(
+              patchIndex: i,
+            ));
+          }
+        }
+      }
+    }
     return issues;
   }
 }

@@ -284,6 +284,10 @@ class _Issue {
   String get courseOverlapsIssue => "$ns.courseOverlapsIssue.title".tr();
 
   String get courseOverlapsIssueDesc => "$ns.courseOverlapsIssue.desc".tr();
+
+  String get patchOutOfRangeIssue => "$ns.patchOutOfRangeIssue.title".tr();
+
+  String get patchOutOfRangeIssueDesc => "$ns.patchOutOfRangeIssue.desc".tr();
 }
 
 class _Patch {

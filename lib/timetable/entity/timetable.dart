@@ -8,6 +8,7 @@ import 'package:sit/entity/campus.dart';
 import 'package:sit/school/entity/school.dart';
 import 'package:sit/school/entity/timetable.dart';
 import 'package:sit/settings/settings.dart';
+import 'package:sit/timetable/utils.dart';
 import 'package:sit/utils/byte_io/byte_io.dart';
 import 'package:statistics/statistics.dart';
 
@@ -80,6 +81,12 @@ class SitTimetable {
     return copyWith(
       lastModified: DateTime.now(),
     );
+  }
+
+  DateTime get endDate => startDate.copyWith(day: startDate.day + maxWeekLength * 7);
+
+  bool inRange(DateTime date) {
+    return startDate.isBefore(date) && date.isBefore(endDate);
   }
 
   @override

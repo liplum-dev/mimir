@@ -4,6 +4,7 @@ import 'package:rettulf/rettulf.dart';
 import 'package:sit/design/adaptive/foundation.dart';
 import 'package:sit/design/widgets/expansion_tile.dart';
 import 'package:sit/l10n/time.dart';
+import 'package:sit/timetable/entity/patch.dart';
 
 import '../entity/timetable.dart';
 import '../entity/issue.dart';
@@ -16,23 +17,30 @@ extension TimetableIssuesX on List<TimetableIssue> {
     required SitTimetable timetable,
     required ValueChanged<SitTimetable> onTimetableChanged,
   }) {
-    final emptyIssues = whereType<TimetableEmptyIssue>().toList();
-    final cbeIssues = whereType<TimetableCbeIssue>().toList();
-    final courseOverlapIssues = whereType<TimetableCourseOverlapIssue>().toList();
+    final empty = whereType<TimetableEmptyIssue>().toList();
+    final cbe = whereType<TimetableCbeIssue>().toList();
+    final courseOverlap = whereType<TimetableCourseOverlapIssue>().toList();
+    final patchOutOfRange = whereType<TimetablePatchOutOfRangeIssue>().toList();
     return [
-      if (emptyIssues.isNotEmpty)
+      if (empty.isNotEmpty)
         TimetableEmptyIssueWidget(
-          issues: emptyIssues,
+          issues: empty,
         ),
-      if (cbeIssues.isNotEmpty)
+      if (cbe.isNotEmpty)
         TimetableCbeIssueWidget(
-          issues: cbeIssues,
+          issues: cbe,
           timetable: timetable,
           onTimetableChanged: onTimetableChanged,
         ),
-      if (courseOverlapIssues.isNotEmpty)
+      if (courseOverlap.isNotEmpty)
         TimetableCourseOverlapIssueWidget(
-          issues: courseOverlapIssues,
+          issues: courseOverlap,
+          timetable: timetable,
+          onTimetableChanged: onTimetableChanged,
+        ),
+      if (patchOutOfRange.isNotEmpty)
+        TimetablePatchOutOfRangeIssueWidget(
+          issues: patchOutOfRange,
           timetable: timetable,
           onTimetableChanged: onTimetableChanged,
         ),
@@ -159,6 +167,63 @@ class _TimetableCourseOverlapIssueWidgetState extends State<TimetableCourseOverl
                     .text();
               }),
             ].column(caa: CrossAxisAlignment.start),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+
+class TimetablePatchOutOfRangeIssueWidget extends StatefulWidget {
+  final List<TimetablePatchOutOfRangeIssue> issues;
+  final SitTimetable timetable;
+  final ValueChanged<SitTimetable> onTimetableChanged;
+
+  const TimetablePatchOutOfRangeIssueWidget({
+    super.key,
+    required this.issues,
+    required this.timetable,
+    required this.onTimetableChanged,
+  });
+
+  @override
+  State<TimetablePatchOutOfRangeIssueWidget> createState() => _TimetablePatchOutOfRangeIssueWidgetState();
+}
+
+class _TimetablePatchOutOfRangeIssueWidgetState extends State<TimetablePatchOutOfRangeIssueWidget> {
+  @override
+  Widget build(BuildContext context) {
+    final timetable = widget.timetable;
+    return Card.outlined(
+      clipBehavior: Clip.hardEdge,
+      child: AnimatedExpansionTile(
+        initiallyExpanded: true,
+        title: i18n.issue.patchOutOfRangeIssue.text(),
+        subtitle: i18n.issue.patchOutOfRangeIssueDesc.text(),
+        children: widget.issues.map((issue) {
+          final patch = issue.locate(timetable);
+          return ListTile(
+            leading: Icon(patch.type.icon),
+            title: patch.type.l10n().text(),
+            subtitle: patch.l10n().text(),
+            trailing: PlatformTextButton(
+              child: i18n.issue.resolve.text(),
+              onPressed: () async {
+                // final newCourse = await context.showSheet<SitCourse>(
+                //       (ctx) => SitCourseEditorPage(
+                //     title: i18n.editor.editCourse,
+                //     course: course,
+                //     editable: const SitCourseEditable.only(hidden: true),
+                //   ),
+                // );
+                // if (newCourse == null) return;
+                // final newTimetable = timetable.copyWith(
+                //   courses: Map.of(timetable.courses)..["${newCourse.courseKey}"] = newCourse,
+                // );
+                // widget.onTimetableChanged(newTimetable);
+              },
+            ),
           );
         }).toList(),
       ),
