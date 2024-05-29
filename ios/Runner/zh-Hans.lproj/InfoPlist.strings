@@ -1,5 +1,0 @@
-CFBundleDisplayName = "小应生活";
-
-NSCalendarsUsageDescription = "需要日历权限用于添加考试日程";
-NSCameraUsageDescription = "需要相机权限用于扫描二维码";
-NSPhotoLibraryUsageDescription = "需要照片权限用于识别二维码和设置课程表背景";

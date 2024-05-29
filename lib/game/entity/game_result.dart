@@ -1,4 +1,0 @@
-enum GameResult {
-  victory,
-  gameOver;
-}

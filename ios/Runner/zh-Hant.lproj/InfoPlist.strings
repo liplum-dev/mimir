@@ -1,5 +1,0 @@
-CFBundleDisplayName = "小鷹生活";
-
-NSCalendarsUsageDescription = "需要行事曆权限用於增加考試事項";
-NSCameraUsageDescription = "需要相機權限用於掃描QR碼";
-NSPhotoLibraryUsageDescription = "需要相簿權限用於識別QR碼和設置課程表桌布";
