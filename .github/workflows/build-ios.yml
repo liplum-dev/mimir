@@ -180,7 +180,7 @@ jobs:
 
       # 上传至 TestFlight。注意这里使用的 API Key 和 Private Key 均来自 Secrets。
       - name: Deploy to App Store (TestFlight)
-        uses: apple-actions/upload-testflight-build@v3.0.0
+        uses: apple-actions/upload-testflight-build@v5.3.0
         with:
           app-path: ${{ github.workspace }}/build/life.mysit.SITLife.ipa
           issuer-id: ${{ env.APP_STORE_CONNECT_ISSUER_ID }}
